@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7543a4fe-c40e-4e98-948e-a08840c18f7e" name="Default Changelist" comment="branch wdl init and think something">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/WDL_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/WDL_workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/format_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/format_cmd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/common/struct.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/common/struct.wdl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/input.json" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/input.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/local_beckend.conf" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/local_beckend.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/pipeline.workflow.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/pipeline.workflow.wdl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/subtask.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/subtask.wdl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/classification_define.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/classification_define.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/argo_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/argo_workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/job_default.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/job_default.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/FINISH-STEP_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/FINISH-STEP_YamlTemplate.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Job_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Job_YamlTemplate.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Pipeline_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Pipeline_YamlTemplate.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/VolumeMounts_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/VolumeMounts_YamlTemplate.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Volume_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Volume_YamlTemplate.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/SGE_SJM/SJM_DAG.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/SGE_SJM/SJM_DAG.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/SGE_SJM/template/template.job" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/SGE_SJM/template/template.job" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Workflow/version.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/version.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/not_use_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/not_use_function.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/tree_dict_display.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/tree_dict_display.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template/Modules/QC.mk" beforeDir="false" afterPath="$PROJECT_DIR$/template/Modules/QC.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/template/config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template/job.list" beforeDir="false" afterPath="$PROJECT_DIR$/template/job.list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template/job.template" beforeDir="false" afterPath="$PROJECT_DIR$/template/job.template" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/template/template.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/template/template.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/pipeline_generate.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectId" id="1zquODnpa0YiNInuMuj9qjGgGa8" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
+    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\File_company\program\self_dont\template" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="tree_dict_display" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="D:\softwares\python3\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/lib/tree_dict_display.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.tree_dict_display" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7543a4fe-c40e-4e98-948e-a08840c18f7e" name="Default Changelist" comment="" />
+      <created>1634887905324</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1634887905324</updated>
+      <workItem from="1634887906637" duration="5718000" />
+      <workItem from="1635124932436" duration="19004000" />
+      <workItem from="1635211601041" duration="57528000" />
+      <workItem from="1635469869134" duration="11142000" />
+      <workItem from="1635729673181" duration="107150000" />
+      <workItem from="1636336518330" duration="41501000" />
+      <workItem from="1636592041542" duration="27182000" />
+      <workItem from="1636938308067" duration="36956000" />
+      <workItem from="1637198416726" duration="45781000" />
+      <workItem from="1637543509359" duration="76031000" />
+      <workItem from="1638149244876" duration="18897000" />
+      <workItem from="1638752756346" duration="54276000" />
+      <workItem from="1639124318551" duration="6000" />
+      <workItem from="1639366159740" duration="2411000" />
+      <workItem from="1639449961298" duration="41201000" />
+      <workItem from="1639631938620" duration="33988000" />
+      <workItem from="1639962810880" duration="10292000" />
+      <workItem from="1640056829901" duration="56737000" />
+      <workItem from="1640568336961" duration="12817000" />
+      <workItem from="1641345522504" duration="9314000" />
+      <workItem from="1641462262109" duration="1432000" />
+      <workItem from="1641517781017" duration="128000" />
+      <workItem from="1641517912347" duration="46000" />
+      <workItem from="1641517960510" duration="75000" />
+      <workItem from="1641518038029" duration="17000" />
+      <workItem from="1643353780056" duration="460000" />
+    </task>
+    <task id="LOCAL-00001" summary="branch wdl init and think something">
+      <created>1636452119877</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1636452119877</updated>
+    </task>
+    <task id="LOCAL-00002" summary="branch wdl init and think something">
+      <created>1639647644706</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1639647644706</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="branch wdl init and think something" />
+    <option name="LAST_COMMIT_MESSAGE" value="branch wdl init and think something" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/self_dont$tree_dict_display.coverage" NAME="tree_dict_display Coverage Results" MODIFIED="1634891902020" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/lib" />
+  </component>
+</project>

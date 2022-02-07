@@ -1,0 +1,15 @@
+[JOB STAR]
+Name    TASK1
+Queue   scr.q,all.q
+Resource    vf=1G,p=1
+Dependent
+CMD echo yes
+[JOB END]
+
+[JOB STAR]
+Name    TASK2
+Queue   scr.q,all.q
+Resource    vf=1G,p=1
+Dependent   TASK1
+CMD echo yes
+[JOB END]

@@ -1,0 +1,32 @@
+default:
+    Queue: "test.q"
+    Shell_dir: "{OUTDIR}/shell"
+    CPU: 1
+    Memory: "1G"
+    Image: "alpine:3.13.5"
+
+pipeline:
+    QC:
+        merge_data:
+#            Shell_dir: "{OUTDIR}/Fastqc"
+            Part: "Sample"
+            Queue: "test.q"
+            Image: "alpine:3.13.5"
+            Depend:
+                -
+            Command: "{make} -f {BIN}/Modules/QC.mk  outdir={OUTDIR} sample_id={Part[0]} merge_data"
+        qc:
+#            Shell_dir: "{OUTDIR}/Fastqc"
+            Depend:
+                - "merge_data_{Part[0]}"
+            Part: "Sample"
+            Command:
+                - "{make} -f {BIN}/Modules/QC.mk sample_id={Part[0]} outdir={OUTDIR} qc"
+                - "echo yes && whoami"
+        qc_summary:
+#            Shell_dir: "{OUTDIR}/Fastqc"
+            Image: "alpine:3.13.5"
+            Depend:
+                - "qc"
+                - "merge_data"
+            Command: "{make} -f {BIN}/Modules/QC.mk outdir={OUTDIR} scriptdir={OUTDIR} qc_summary"

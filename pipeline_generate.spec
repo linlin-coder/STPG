@@ -4,10 +4,10 @@
 block_cipher = None
 
 
-a = Analysis(['pipeline_generate.py'],
-             pathex=['/share/work2/zhangyanlin077/RD/Public_tool/pipeline_generater/lib', '/share/work2/zhangyanlin077/RD/Public_tool/pipeline_generater/Workflow/'],
+a = Analysis(['src/pipeline_generate.py'],
+             pathex=['/data/workdir/zhangyanlin077/tmp/pipeline_generater/src/lib', '/data/workdir/zhangyanlin077/tmp/pipeline_generater/src/Workflow/'],
              binaries=[],
-             datas=[('config', 'config')],
+             datas=[('src/config', 'config')],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},

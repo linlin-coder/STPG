@@ -7,6 +7,7 @@ pyinstaller \
   --ascii --clean \
   -F \
   src/pipeline_generate.py
+rm -rf dist 
 # 修改pipeline_generate.spec，将datas中加入config，打包配置文件
 #pyinstaller pipeline_generate.spec
 #cd `pwd` && ln -snf dist/pipeline_generate STPG

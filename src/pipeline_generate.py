@@ -25,11 +25,11 @@ pat3 = re.compile('(Para_[A-Za-z0-9_-]+)\\\\?')
 pat4 = re.compile('(DB_[A-Za-z0-9_-]+)\\\\?')
 pat5 = re.compile('\S*make\s')
 ReserveWord = ['OUTDIR','BIN','LOGFILE']
-
-tool_config = myconf()
-tool_config.read(os.path.join(tool_bin, 'config', 'tools_config.ini'))
-global_sign=tool_config['sign']['finish_sign']
-
+global_sign=''
+def define_sign(configfile):
+    tool_config = myconf()
+    tool_config.read(configfile)
+    global_sign=tool_config['sign']['finish_sign']
 
 class JOB_attribute():
     def __init__(self):
@@ -191,13 +191,15 @@ class Parser_Job():#Deliver_DAG_Job):
         tmp_need_runjob = []
         list_file_real = obtain_file_realpath(list_file)
         if not list_file_real:return self.modules_list
-        with open(list_file_real, 'r') as f_jobs:
-            for line in f_jobs.readlines():
-                if line.startswith("#"):continue
-                job = line.split(" ")
-                if len(job) > 1:
-                    std.warning('joblist:{0},There is a problem with the format,line content is:{1},use first element {2}'.format(list_file_real, line, job[0]))
-                if job[0] not in tmp_need_runjob:tmp_need_runjob.append(job[0])
+        # with open(list_file_real, 'r') as f_jobs:
+        #     for line in f_jobs.readlines():
+        #         if line.startswith("#"):continue
+        #         job = line.split(" ")
+        #         if len(job) > 1:
+        #             std.warning('joblist:{0},There is a problem with the format,line content is:{1},use first element {2}'.format(list_file_real, line, job[0]))
+        #         if job[0] not in tmp_need_runjob:tmp_need_runjob.append(job[0])
+        joblist_yaml = read_yaml(list_file_real)
+        tmp_need_runjob = list(joblist_yaml.keys())
         all_more_set, need_more_set = set_diff_operation(self.modules_list, tmp_need_runjob)
         if need_more_set:
             std.error('The task list contains modules not included in the process,as follows:{0}'.format(need_more_set))
@@ -205,12 +207,21 @@ class Parser_Job():#Deliver_DAG_Job):
         if all_more_set:
             std.warning('Please note that the following modules are not analyzed,as follows:{0}'.format(all_more_set))
 
-        return tmp_need_runjob
+        # return tmp_need_runjob
+        return joblist_yaml
 
     def clean_pipeline_task(self,need_run_modules):
         for modules in self.modules_list:
             if modules not in need_run_modules:
+                std.warning("The main analysis module to be eliminated is:{modules}".format(modules=modules))
                 self.pipeline_jobs.pop(modules)
+            else:
+                for childmodule in list(self.pipeline_jobs[modules].keys()):
+                    if need_run_modules[modules] and childmodule not in need_run_modules[modules]:
+                        std.warning("The analysis sub module to be eliminated is:{modules}".format(modules=childmodule))
+                        self.pipeline_jobs[modules].pop(childmodule)
+                    else:
+                        pass
         self.modules_list = need_run_modules
 
     def relyon_status_mark(self, module, one_job):
@@ -395,7 +406,7 @@ def main():
     ## tool config read
     if not args.tonfig or not os.path.exists(args.tonfig):
         args.tonfig = os.path.join('bin_tool', 'config', 'tools_config.ini')
-
+    define_sign(args.tonfig)
     ## parser project-config-ini
     project_config, project_para, project_db, project_orders = ReadConfig(args.config)
     if 'BIN' not in project_para:
@@ -410,11 +421,6 @@ def main():
     elif "argo" in args.method:
         from Workflow.K8S_argo.argo_workflow import ARGO_workflow
         ReadJob = ARGO_workflow(job_file=args.template, parameter=project_para, outdir=outdir, pipe_bindir=pipe_bindir, sjm_method=args.method, project=args.project)
-        # volumeMounts = ReadJob.ascertain_data_mount()
-        # ReadJob.get_dependence()
-        # ReadJob.write_Command_to_file()
-        # ReadJob.DAG2yaml(dependence_dict, shell_dir=outdir, jobname=args.project,)
-        # ReadJob.delivary_pipeline(yaml_file='.')
     else:
         ReadJob = Parser_Job(job_file=args.template, parameter=project_para,outdir=outdir, pipe_bindir=pipe_bindir, sjm_method=args.method)
     # ReadJob.read_file()

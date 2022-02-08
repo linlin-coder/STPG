@@ -19,7 +19,7 @@ STPG \
 ### 2.2 参数介绍
 * -b/--bin  
 指定为特定流程的根目录，此目录下存在Modules文件夹（Modules文件夹内存储所有模块的makefile文件，被-t参数指定文件进行调用）  
-* -c/--config
+* -c/--config  
 与流程无关而和特定的项目有关的配置文件，填写参数被流程调用，参考内容如下：
     ```editorconfig
     [Sample]
@@ -41,9 +41,9 @@ STPG \
     [Para]
     Para_test=test
     ```  
-* -pro/--project
+* -pro/--project  
 运行项目的名称
-* -t/--template 
+* -t/--template   
 定义流程运行的模板文件，记录模块间的依赖、运行资源、镜像以及模块归属等，示例如下：
     ```yaml
     default:
@@ -79,7 +79,7 @@ STPG \
                     - "merge_data"
                 Command: "{make} -f {BIN}/Modules/QC.mk outdir={OUTDIR} scriptdir={OUTDIR} qc_summary"
     ```  
-* -m/--method  
+* -m/--method    
 超算的架构类型以及资源投递器的类型，目前支持如下：
   * sge-singularity-sjm 
   * sge-docker-sjm
@@ -88,20 +88,31 @@ STPG \
   * sge-docker-wdl
   * k8s-docker-argo
 
-* -o/--outdir  
+* -o/--outdir    
 生成流程的输出目录
-* -tc/--toolconfig
+* -tc/--toolconfig  
 工具运行的配置文件，默认使用`config/tool_config.ini`文件。
-* -r/--run（可选）
+* -r/--run（可选）  
 布尔选择，指定时生成流程后直接投递任务流。
-* -p/--point 
+* -p/--point   
 流程运行起始点，这里可以是模板中的任意一个主模块或子模块，起始点以前的所有模块均强行定义为完成。  
-* -l/--list（可选）
+* -l/--list（可选）  
 选择模板中的一部分主模块进行分析，进行指定的列表文件，为一列
     ```text
     taskA
     taskB
     ```  
+### 2.3 软件重新打包
+参考`pyinstaller.sh`文件中的代码，主要使用pyinstaller工具进行打包，核心代码如下：
+```shell
+pyinstaller \
+  --paths `pwd`/src/lib \
+  --paths `pwd`/src/Workflow/ \
+  --add-data src/config:config \
+  --ascii --clean \
+  -F \
+  src/pipeline_generate.py
+```
 ## STPG 适配的流程规范
 一般流程采用如下结构
 ```text

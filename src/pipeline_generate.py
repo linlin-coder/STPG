@@ -167,6 +167,7 @@ class Parser_Job():#Deliver_DAG_Job):
 
         pipeline_dict = read_yaml(self.job_file)
         default = pipeline_dict["default"]
+        self.default = Dict2Obj(default)
         error_keys_list = []
         pipeline = pipeline_dict["pipeline"]
 
@@ -190,13 +191,6 @@ class Parser_Job():#Deliver_DAG_Job):
         tmp_need_runjob = []
         list_file_real = obtain_file_realpath(list_file)
         if not list_file_real:return self.modules_list
-        # with open(list_file_real, 'r') as f_jobs:
-        #     for line in f_jobs.readlines():
-        #         if line.startswith("#"):continue
-        #         job = line.split(" ")
-        #         if len(job) > 1:
-        #             std.warning('joblist:{0},There is a problem with the format,line content is:{1},use first element {2}'.format(list_file_real, line, job[0]))
-        #         if job[0] not in tmp_need_runjob:tmp_need_runjob.append(job[0])
         joblist_yaml = read_yaml(list_file_real)
         tmp_need_runjob = list(joblist_yaml.keys())
         all_more_set, need_more_set = set_diff_operation(self.modules_list, tmp_need_runjob)

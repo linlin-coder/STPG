@@ -112,6 +112,10 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
             f.write('\n'.join(one_job.Command))
 
     def create_other_shsh(self):
+        # 把default中的attr提供给ENV
+        if hasattr(self.default, "Image") and self.default.Image:
+            self.public_qsub(self.default.Image)
+
         self.sh_sjm_Analysis = os.path.join(self.outdir,'sjm_Analysis.sh')
         with open(self.sh_sjm_Analysis, 'w') as f_sjm:
             f_sjm.write('cd {0.outdir}/log && export SGE_ROOT={0.sge_root} && export {0.sjm_lib} && {0.sjm} -i -l Analysis.job.status.log Analysis.job\n'.format(self))

@@ -1,10 +1,10 @@
 # Standard template pipeline generater(STPG) 
 
-## STPG ���
-STPG ��һ������ģ��Ԥ����ķ�ʽ�����ض��������̵��Զ������ߣ�����makefile��yaml�ȼ�������ʵ�֣���Ҫ����Ϊһ���µ��������˼·����ϸ��Ϣ��[�Ķ���չ����](https://zhuanlan.zhihu.com/p/449187702) ��  
-�����������̶����в��ýű�����װ�ķ�ʽ�����������̵���չ�������������Եȣ�ͨ���淶����ģ�������������̣��ǳ����ģ��Ⱥ�����ݷ����ı�Ҫ���ߡ�
-## STPG ʹ�÷���
-### 2.1 һ��ʾ��
+## STPG 简介
+STPG 是一个基于模板预定义的方式生成特定分析流程的自动化工具，基于makefile、yaml等技术进行实现，主要表现为一种新的流程设计思路，详细信息请[阅读扩展链接](https://zhuanlan.zhihu.com/p/449187702) 。  
+在以往的流程定义中采用脚本逐层封装的方式，不利于流程的扩展迭代，报错调试等，通过规范流程模板批量生成流程，是超大规模集群中数据分析的必要工具。
+## STPG 使用方法
+### 2.1 一般示例
 ```shell
 STPG \
   -b $(pipeline-bin) \
@@ -14,13 +14,14 @@ STPG \
   -m sge-singularity-sjm \
   -o $(job-root) \
   -tc $(pipeline-bin)/Script/piplinetool.config \
+  -p $(pointname) \
   -r
 ```
-### 2.2 ��������
+### 2.2 参数介绍
 * -b/--bin  
-ָ��Ϊ�ض����̵ĸ�Ŀ¼����Ŀ¼�´���Modules�ļ��У�Modules�ļ����ڴ洢����ģ���makefile�ļ�����-t����ָ���ļ����е��ã�  
+指定为特定流程的根目录，此目录下存在Modules文件夹（Modules文件夹内存储所有模块的makefile文件，被-t参数指定文件进行调用）  
 * -c/--config  
-�������޹ض����ض�����Ŀ�йص������ļ�����д���������̵��ã��ο��������£�
+与流程无关而和特定的项目有关的配置文件，填写参数被流程调用，参考内容如下：
     ```editorconfig
     [Sample]
     A1=B2-S	B2-S.R2
@@ -42,9 +43,9 @@ STPG \
     Para_test=test
     ```  
 * -pro/--project  
-������Ŀ������
+运行项目的名称
 * -t/--template   
-�����������е�ģ���ļ�����¼ģ����������������Դ�������Լ�ģ������ȣ�ʾ�����£�
+定义流程运行的模板文件，记录模块间的依赖、运行资源、镜像以及模块归属等,示例如下：
     ```yaml
     default:
         Queue: "test.q"
@@ -78,32 +79,60 @@ STPG \
                     - "qc"
                     - "merge_data"
                 Command: "{make} -f {BIN}/Modules/QC.mk outdir={OUTDIR} scriptdir={OUTDIR} qc_summary"
-    ```  
+    ```    
+迭代区数据如何使用：  
+    `Part`指定对`config.ini`文件那个区域进行迭代，此区域的信息格式最好一致，`TAB`键分隔；`Part[0]`指的是`=`左边的值，`Part[1]`到`Part[n]`指的是`=`右边并在按`TAB`键分隔后的值
+数据库参数的引用：  
+指定在在`config.ini`文件中`DB`区域以`DB_`开头的参数，例如`DB_test`。  
+其他参数的引用：  
+指定在在`config.ini`文件中`Para`区域以`Para_`开头的参数，例如`Para_test`。  
+如何定义模块和模块间的依赖关系，所有的依赖情况为：
+  1. 依赖主模块里的所有子模块；  
+  ```text
+  Depend:
+    - "QC"
+  ```    
+  2. 依赖主模块里的单个子模块；  
+  ```text
+  Depend:
+    - "qc_summary"
+  ```    
+  3. 依赖主模块中有迭代区的单个子模块。  
+  ```text
+  Depend:
+    - "merge_data_{Part[0]}"
+  ```    
 * -m/--method    
-����ļܹ������Լ���ԴͶ���������ͣ�Ŀǰ֧�����£�
+超算的架构类型以及资源投递器的类型，目前支持如下：
   * sge-singularity-sjm 
   * sge-docker-sjm
   * sge-normal-sjm  
-��������Ϊ��
+待开发的为：
   * sge-docker-wdl
   * k8s-docker-argo
 
 * -o/--outdir    
-�������̵����Ŀ¼
+生成流程的输出目录
 * -tc/--toolconfig  
-�������е������ļ���Ĭ��ʹ��`config/tool_config.ini`�ļ���
-* -r/--run����ѡ��  
-����ѡ��ָ��ʱ�������̺�ֱ��Ͷ����������
+工具运行的配置文件，默认使用`config/tool_config.ini`文件。
+* -r/--run（可选）  
+布尔选择，指定时生成流程后直接投递任务流。
 * -p/--point   
-����������ʼ�㣬���������ģ���е�����һ����ģ�����ģ�飬��ʼ����ǰ������ģ���ǿ�ж���Ϊ��ɡ�  
-* -l/--list����ѡ��  
-ѡ��ģ���е�һ������ģ����з���������ָ�����б��ļ���Ϊһ��
+流程运行起始点，这里可以是模板中的任意一个主模块或子模块，起始点以前的所有模块均强行定义为完成。  
+* -l/--list（可选）  
+选择模板中的一部分主模块进行分析，进行指定的列表文件，为一个yaml文件
     ```text
-    taskA
-    taskB
+    # 分析一个主模块下部分子模块
+    QC：
+     - "qc"
+     - "merge_data"
+    # 分析主模块的所有内容
+    QC：
+    # 不分析该主模块
+    yaml文件中不填写即可
     ```  
-### 2.3 �������´��
-�ο�`pyinstaller.sh`�ļ��еĴ��룬��Ҫʹ��pyinstaller���߽��д�������Ĵ������£�
+### 2.3 软件重新打包
+参考`pyinstaller.sh`文件中的代码，主要使用pyinstaller工具进行打包，核心代码如下：
 ```shell
 pyinstaller \
   --paths `pwd`/src/lib \
@@ -113,26 +142,26 @@ pyinstaller \
   -F \
   src/pipeline_generate.py
 ```
-## STPG ��������̹淶
-һ�����̲������½ṹ
+## STPG 适配的流程规范
+一般流程采用如下结构
 ```text
-|-- Config  # �����ļ�Ŀ¼
-|   |-- config_mk.ini   # makefileʹ�õ������ļ��������config_software���������ڡ�[]��ǰ���ϡ�#��
-|   |-- config_software # ����perl��python�ű����������ļ�
-|   |-- create_mkini.sh # config_softwareתconfig_mk.ini�Ľű�
-|   |-- pipeline.yaml   # ����ģ���ļ���-t������
-|   |-- job.list        # ��������ģ���б��ļ���-l������
+|-- Config  # 配置文件目录
+|   |-- config_mk.ini   # makefile使用的配置文件，相较于config_software差异在于在“[]”前加上“#”
+|   |-- config_software # 部分perl、python脚本所用配置文件
+|   |-- create_mkini.sh # config_software转config_mk.ini的脚本
+|   |-- pipeline.yaml   # 流程模板文件（-t参数）
+|   |-- job.list.yaml   # 待分析的模块列表文件（-l参数）
 |-- Modules
-|   |-- test.mk         # ����������ļ�
-|-- README.md           # ����˵���ļ�
-|-- Readme              # ���˵�����ļ���
+|   |-- test.mk         # 定义命令的文件
+|-- README.md           # 流程说明文件
+|-- Readme              # 结果说明的文件夹
 |   |-- 0.readme.txt
-|-- Script              # �����Ĺ��ܽű�
+|-- Script              # 分析的功能脚本
 |   |-- Basic
-|   `-- piplinetool.config  # ������صĹ��������ļ���-tc������
+|   `-- piplinetool.config  # 流程相关的工具配置文件（-tc参数）
 `-- report
-    |-- �����ļ�
+    |-- 报告文件
 ```
-## STPG ��չ
+## STPG 扩展
 ### Cromwell-WDL
 ### K8S-ARGO

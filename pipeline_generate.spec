@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['src/pipeline_generate.py'],
-             pathex=['/data/workdir/zhangyanlin077/tmp/pipeline_generater/src/lib', '/data/workdir/zhangyanlin077/tmp/pipeline_generater/src/Workflow/'],
+             pathex=['/data/workdir/zhangyanlin077/tmp/STPG/src/lib', '/data/workdir/zhangyanlin077/tmp/STPG/src/Workflow/'],
              binaries=[],
              datas=[('src/config', 'config')],
              hiddenimports=[],

@@ -234,6 +234,7 @@ class Parser_Job():#Deliver_DAG_Job):
             for a_job_name in self.pipeline_jobs[modules]:
                 a_job = self.pipeline_jobs[modules][a_job_name]
                 for index,one_a_job in enumerate(a_job):
+                    makedir(one_a_job.Shell_dir)
                     self.define_jobs_pub(one_a_job)
                     self.relyon_status_mark(modules, one_a_job)
 
@@ -290,7 +291,7 @@ class Parser_Job():#Deliver_DAG_Job):
                 a_job = self.pipeline_jobs[modules][a_job_name]
                 a_job.Shell_dir = os.path.join(self.outdir, modules, a_job_name)
                 # cmds = []
-                makedir(a_job.Shell_dir)
+                # makedir(a_job.Shell_dir)
                 # shell_name = os.path.join(a_job.Shell_dir, '{0}_{1}'.format(modules,a_job.Name))
                 if a_job.Part == '':
                     a_job.Module = modules

@@ -14,6 +14,9 @@ from lib.tree_dict_display import print_tree
 std = Log(os.path.basename(__file__))
 
 from Workflow.version import __author__, __date__, __mail__, tool_bin
+from Workflow import GlobalPara
+
+globalpara = GlobalPara()
 '''
 1. 该程序以config.ini 、job.template和job.list为依赖生成分析流程
 '''
@@ -25,11 +28,6 @@ pat3 = re.compile('(Para_[A-Za-z0-9_-]+)\\\\?')
 pat4 = re.compile('(DB_[A-Za-z0-9_-]+)\\\\?')
 pat5 = re.compile('\S*make\s')
 ReserveWord = ['OUTDIR','BIN','LOGFILE']
-global_sign=''
-def define_sign(configfile):
-    tool_config = myconf()
-    tool_config.read(configfile)
-    global_sign=tool_config['sign']['finish_sign']
 
 class JOB_attribute():
     def __init__(self):
@@ -83,6 +81,7 @@ class JOB_attribute():
 
     def format_command(self):
         output = ''
+        globalpara.define_sign()
         tt = []
         tt.append('echo ==========start at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
         # print(self.Command)
@@ -90,8 +89,8 @@ class JOB_attribute():
             mm = self.format_string(i)
             tt.append(" ".join(mm))
         tt.append('echo ==========end at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
-        tt.append('echo {} 1>&2'.format(global_sign))
-        tt.append('echo {0} >$0.{0}'.format(global_sign))
+        tt.append('echo {} 1>&2'.format(globalpara.global_sign))
+        tt.append('echo {0} >$0.{0}'.format(globalpara.global_sign))
         output = " &&\\\n".join(tt) + '\n'
         # print(output)
         return [len(tt), output]
@@ -225,7 +224,8 @@ class Parser_Job():#Deliver_DAG_Job):
         self.modules_list = need_run_modules
 
     def relyon_status_mark(self, module, one_job):
-        markfile = os.path.join(one_job.Shell_dir, '{0}-{1}.sh.{2}'.format(module, one_job.Name, global_sign))
+        globalpara.define_sign()
+        markfile = os.path.join(one_job.Shell_dir, '{0}-{1}.sh.{2}'.format(module, one_job.Name, globalpara.global_sign))
         if os.path.exists(markfile):
             one_job.Status = "done"
 
@@ -243,13 +243,21 @@ class Parser_Job():#Deliver_DAG_Job):
         [a_job_depend.append(i.split(" ")[-1]) for i in a_job.Depend]
         for one_thisjob_depend in a_job_depend:
             target_path_list = get_dict_target.getpath(self.pipeline_jobs, one_thisjob_depend)
-            if  target_path_list:
+            if  target_path_list and len(target_path_list) >= 2:
                 depend_job = self.pipeline_jobs[target_path_list[0]][target_path_list[1]]
                 a_job.Depend.remove('{0}'.format(one_thisjob_depend))
                 for one_depend_job in depend_job:
                     wait_add_depend = '{1.Name}'.format(a_job, one_depend_job)
                     if wait_add_depend not in a_job.Depend:
                         a_job.Depend.append(wait_add_depend)
+            elif target_path_list and len(target_path_list) == 1:# main module depend define
+                depend_module = self.pipeline_jobs[target_path_list[0]]
+                a_job.Depend.remove('{0}'.format(target_path_list[0]))
+                for childmodule in depend_module:
+                    for one_depend_job in depend_module[childmodule]:
+                        wait_add_depend = one_depend_job.Name
+                        if wait_add_depend not in a_job.Depend:
+                            a_job.Depend.append(wait_add_depend)
             else:
                 # a_job.Depend.remove('order {0.Name} after {1}'.format(a_job, one_thisjob_depend))
                 pass
@@ -406,7 +414,7 @@ def main():
     ## tool config read
     if not args.tonfig or not os.path.exists(args.tonfig):
         args.tonfig = os.path.join('bin_tool', 'config', 'tools_config.ini')
-    define_sign(args.tonfig)
+    GlobalPara.configfile = args.tonfig
     ## parser project-config-ini
     project_config, project_para, project_db, project_orders = ReadConfig(args.config)
     if 'BIN' not in project_para:

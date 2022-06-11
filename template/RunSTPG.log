@@ -1,0 +1,9 @@
+[Para]
+PipelineTemplate = D:/message_about_myself/program-project/STPG/STPG_public/template/template.yaml
+PipelineBin = D:\message_about_myself\program-project\STPG\STPG_public\template
+JobList
+ProjectConfig = D:/message_about_myself/program-project/STPG/STPG_public/template/config.ini
+RunMethod = sge-singularity-sjm
+EntryPoint = 
+OutDir = D:\message_about_myself\program-project\STPG\STPG_public\template
+

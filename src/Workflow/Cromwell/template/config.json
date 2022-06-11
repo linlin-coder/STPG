@@ -1,0 +1,19 @@
+{
+    "module": {
+        "common": {
+            "software": {
+            },
+            "script": {
+            },
+            "environment": {
+              "machine": "OnDemand bcs.es.c.large img-ubuntu-vpc",
+              "docker": "alpine:3.13.5"
+            },
+            "parameter": {
+              "sge_queue": "test.q"
+            },
+            "database": {
+            }
+        }
+    }
+}

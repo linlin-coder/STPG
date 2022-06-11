@@ -1,0 +1,2 @@
+currentdir=$(cd "$(dirname $0)";pwd)
+/share/work2/zhangyanlin077/softwares/miniconda3/bin/python3 ${currentdir}/src/pipeline_generate.py $*

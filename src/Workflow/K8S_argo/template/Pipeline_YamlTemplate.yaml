@@ -1,0 +1,12 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName:
+spec:
+  ttlSecondsAfterFinished: 1296000
+  imagePullSecrets: []
+  entrypoint:
+  arguments:
+    parameters: []
+  volumes: []
+  templates: []

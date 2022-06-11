@@ -1,0 +1,65 @@
+resource:
+    sign:
+       finish_sign: "finished"
+       qc_sign: "Name|Path|Type|Order"
+       qualify: "True:qualified|False:<font color=\"red\">unqualified</font>"
+    
+    software:
+       make: "/mingw64/bin/make"
+       python3: "/usr/bin/python3"
+       python2: "/usr/bin/python"
+       perl: "/usr/bin/perl"
+       java: "/usr/bin/java"
+       sjm: "/usr/bin/sjm"
+       docker: "/usr/bin/docker"
+       singularity: "/usr/bin/singularity"
+
+    path:
+       BIN: ""
+       SGERoot: "/opt/gridengine"
+
+
+default:
+    Queue: "test.q"
+    Shell_dir: "{OUTDIR}/shell"
+    CPU: 1
+    Memory: "1G"
+    Image: "alpine:3.13.5"
+    Mount: 
+        - "/share/public/:/share/public/:ro"
+        - "/share/science/:/share/science/"
+        - "/share/work2/:/share/work2/"
+
+pipeline:
+    QC:
+        merge_data:
+            Part:
+                - "sample"
+            Queue: "test.q"
+            Image: "alpine:3.13.5"
+            Depend:
+                -
+            Command: "{resource.software.make} -f {BIN}/Modules/QC.mk   outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} sample_id={Part[0]} merge_data"
+            Output:
+                A1: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_table1.xls"
+                A2: "{OUTDIR}/{MainModule}/{ChildModule}/picture1.xls"
+                A3: "{OUTDIR}/{MainModule}/{ChildModule}/file1.xls"
+                A4: "{OUTDIR}/{MainModule}/{ChildModule}/table2.xls"
+
+        qc:
+            Depend:
+                - "merge_data_{Part[0]}"
+            Part:
+                - "sample"
+            Command:
+                - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}.Output.A1>"
+                - "echo yes && whoami"
+            Output:
+                QCP: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_QCP.txt"
+
+        qc_summary:
+            Image: "alpine:3.13.5"
+            Depend:
+                - "qc"
+                - "merge_data"
+            Command: "{resource.software.make} -f {BIN}/Modules/QC.mk  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} scriptdir={OUTDIR} qc_summary File2=<qc.Output.QCP> File3=<merge_data.Output.A1>"

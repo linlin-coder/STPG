@@ -1,0 +1,20 @@
+- name: sge
+  nfs:
+    server: x400.bjannoroad.local
+    path: /data1
+- name: workdir
+  nfs:
+    server: x400.bjannoroad.local
+    path: /cloud
+- name: home
+  nfs:
+    server: x400.bjannoroad.local
+    path: /cloud_home
+- name: timezone
+  hostPath:
+    path: /etc/localtime
+    type: File
+- name: nas
+  nfs:
+    server: 1q7o0lul18-cjw52.cn-beijing.nas.aliyuncs.com
+    path: /data1

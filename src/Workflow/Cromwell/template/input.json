@@ -1,0 +1,7 @@
+{
+  "pipeline.workid": "String? (optional)",
+  "pipeline.config_json": "",
+  "pipeline.outdir": "/data/project/",
+  "pipeline.sge_mount": "",
+  "pipeline.ossdir": "String? (optional)"
+}

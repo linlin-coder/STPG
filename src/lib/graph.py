@@ -303,7 +303,7 @@ class DFSGraph(Graph):
 
         # 对该节点的相邻节点进行探索
         for nbr in aVertext.getConnections():
-            print(aVertext.id, nbr.id, nbr.color)
+            # print(aVertext.id, nbr.id, nbr.color)
             # if nbr.color == ColorTask.white:
             nbr.distance = aVertext.distance + 1
             if aVertext not in nbr.prefix:

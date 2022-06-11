@@ -4,6 +4,6 @@ PipelineBin = D:\message_about_myself\program-project\STPG\STPG_public\template
 JobList = 
 ProjectConfig = D:/message_about_myself/program-project/STPG/STPG_public/template/config.ini
 RunMethod = sge-singularity-sjm
-EntryPoint = 
+EntryPoint = qc
 OutDir = D:\message_about_myself\program-project\STPG\STPG_public\template\Test
 

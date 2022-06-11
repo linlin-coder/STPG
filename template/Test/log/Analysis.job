@@ -1,7 +1,7 @@
 
 job_begin
 	name merge_data_A1
-	status waiting
+	status done
 	sched_options -V -cwd -l vf=1G,p=1 -q test.q
 	cmd /usr/bin/singularity exec --cleanenv -B /share/public/:/share/public/:ro -B /share/science/:/share/science/ -B /share/work2/:/share/work2/ alpine:3.13.5 /bin/bash  D:\message_about_myself\program-project\STPG\STPG_public\template\Test\QC\merge_data/QC-merge_data_A1.sh
 job_end
@@ -13,7 +13,7 @@ job_begin
 job_end
 job_begin
 	name merge_data_A2
-	status waiting
+	status done
 	sched_options -V -cwd -l vf=1G,p=1 -q test.q
 	cmd /usr/bin/singularity exec --cleanenv -B /share/public/:/share/public/:ro -B /share/science/:/share/science/ -B /share/work2/:/share/work2/ alpine:3.13.5 /bin/bash  D:\message_about_myself\program-project\STPG\STPG_public\template\Test\QC\merge_data/QC-merge_data_A2.sh
 job_end
@@ -25,7 +25,7 @@ job_begin
 job_end
 job_begin
 	name merge_data_A3
-	status waiting
+	status done
 	sched_options -V -cwd -l vf=1G,p=1 -q test.q
 	cmd /usr/bin/singularity exec --cleanenv -B /share/public/:/share/public/:ro -B /share/science/:/share/science/ -B /share/work2/:/share/work2/ alpine:3.13.5 /bin/bash  D:\message_about_myself\program-project\STPG\STPG_public\template\Test\QC\merge_data/QC-merge_data_A3.sh
 job_end

@@ -274,6 +274,7 @@ class Parser_Job():#Deliver_DAG_Job):
                     self.relyon_status_mark(modules, one_a_job)
                     self.pipeline_jobs_name[modules][a_job_name][one_a_job.Name] = index
         del self.jobs_dict
+        self.pipelineGraph.dfs() # define task and prefix relative
 
     def define_jobs_pub(self,a_job):
         """
@@ -431,7 +432,6 @@ class Parser_Job():#Deliver_DAG_Job):
         pass
 
     def change_to_startpoint(self, startpoints):
-        self.pipelineGraph.dfs() # define task and prefix relative
         if startpoints:
             std.info("Startpoint: ...")
             std.info('\tfrom %s\n' % ', '.join(startpoints))
@@ -560,7 +560,8 @@ def main():
     parser.add_argument('-p', '--point', help='startpoint', dest='point',nargs="+")
     parser.add_argument('-t', '--template', help='template file', dest='template',required=True)
     parser.add_argument('-l', '--list', help='job list file', dest='joblist')
-    parser.add_argument('-m', '--method', help='run job method using SJM', dest='method',default='singularity',choices=['sge-singularity-sjm','sge-docker-sjm','sge-normal-sjm'])
+    parser.add_argument('-m', '--method', help='run job method using SJM', dest='method',default='singularity',
+                        choices=['sge-singularity-sjm','sge-docker-sjm','sge-normal-sjm','k8s-docker-argo'])
     parser.add_argument('-r', '--run', help='run analysis pipeline', dest='run',action='store_true')
     parser.add_argument('-o', '--outdir', help='analysis result outdir', dest='outdir',type=str)
 

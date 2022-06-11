@@ -7,7 +7,7 @@ from Workflow.K8S_argo.Define_pipeline.classification_define import DAG, Step, J
 from Workflow.version import tool_bin
 from lib.public_method import myconf as Config, Log
 
-std = Log(os.path.join(__file__))
+std = Log(os.path.basename(__file__))
 
 POD_NAME='${MY_POD_NAME}'
 ags_config=Config()

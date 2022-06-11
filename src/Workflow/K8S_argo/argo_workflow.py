@@ -13,6 +13,7 @@ from lib.public_method import myconf as Config
 from pipeline_generate import Parser_Job
 
 bindir=os.path.dirname(os.path.realpath(__file__))
+std.filename = os.path.basename(__file__)
 
 class ARGO_workflow(Parser_Job):
 	def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
@@ -153,6 +154,7 @@ class ARGO_workflow(Parser_Job):
 		# shell_dir = '.'
 		shell_name_dict = collections.OrderedDict()
 		all_task_list = self.pipelineGraph.getVertices()
+		JNameTasks = {}
 		for one_one_job in all_task_list:
 			self.supplement_element(one_one_job)
 			self.write_object_job(one_one_job.Module, one_one_job)
@@ -161,9 +163,18 @@ class ARGO_workflow(Parser_Job):
 			shell_name_dict[shell_basename] = shell_basename + '.sh'
 			with open(shsh, 'w') as f:
 				f.write('\n'.join(one_one_job.Command))
-			shell_name_dict['{}-Finish'.format(one_one_job.JName)] = 'FINISH-STEP'
-			inifile = os.path.join(self.outdir, one_one_job.Module, one_one_job.JName + '.ini')
-			dump2JobINI(inifile, one_one_job.JName, one_one_job, shell_name_dict)
+			if one_one_job.JName not in JNameTasks:
+				JNameTasks[one_one_job.JName] = {}
+				JNameTasks[one_one_job.JName]['shell'] = {}
+			JNameTasks[one_one_job.JName]['shell'][shell_basename] = shell_basename + '.sh'
+			JNameTasks[one_one_job.JName]['Module'] = one_one_job.Module
+			JNameTasks[one_one_job.JName]['OneTask'] = one_one_job
+
+		for JName,Task_dict in JNameTasks.items():
+			shell_name_dict = Task_dict['shell']
+			shell_name_dict['{}-Finish'.format(JName)] = 'FINISH-STEP'
+			inifile = os.path.join(self.outdir, Task_dict['Module'], JName + '.ini')
+			dump2JobINI(inifile, JName, Task_dict['OneTask'], shell_name_dict)
 		self.DAG2yaml(self.dependence_dict, shell_dir=self.outdir, jobname=self.project, )
 
 	def supplement_element(self, a_job):
@@ -195,11 +206,13 @@ class ARGO_workflow(Parser_Job):
 				else:
 					dependecies_tmp=set(a_job.Depend)
 				dependecies=[]
-				for dependece in dependecies_tmp:
+				print(a_job.Name)
+				dependeciesTasks = self.pipelineGraph.getVertex(a_job).prefix
+				'''for dependece in dependecies_tmp:
 					if dependece not in module_dict:
 						std.fatal('can not find depend module {} before module {}'.format(dependece,a_job.Name),exit_code=1)
-					dependecies.append(module_dict[dependece])
-				self.dependence_dict[a_job.Name]=dependecies
+					dependecies.append(module_dict[dependece])'''
+				self.dependence_dict[a_job.Name]=[task.id.Name for task in dependeciesTasks]
 				# order_tmp=order
 		# return dependence_dict,module_dict
 

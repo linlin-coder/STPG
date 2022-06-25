@@ -125,8 +125,8 @@ class Graph():  # 图 => 由顶点所构成的图
     def getUpstreamVertex(self, key):
         """
         获取当指向前节点的所有顶点信息，包括间接指向的顶点信息
-        :param key:
-        :return:
+        :param key: 目标在图中的Name
+        :return: 所有被target 直接或间接依赖的 Name
         """
         keyobject = self.getVertex(key)
         routeTask = []

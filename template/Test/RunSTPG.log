@@ -1,9 +1,9 @@
 [Para]
-PipelineTemplate = D:/message_about_myself/program-project/STPG/STPG_public/template/template.yaml
+PipelineTemplate = D:\message_about_myself\program-project\STPG\STPG_public\template\template.yaml
 PipelineBin = D:\message_about_myself\program-project\STPG\STPG_public\template
 JobList = 
-ProjectConfig = D:/message_about_myself/program-project/STPG/STPG_public/template/config.ini
-RunMethod = sge-singularity-sjm
-EntryPoint = qc
+ProjectConfig = D:\message_about_myself\program-project\STPG\STPG_public\template\config.ini
+RunMethod = k8s-docker-argo
+EntryPoint = 
 OutDir = D:\message_about_myself\program-project\STPG\STPG_public\template\Test
 

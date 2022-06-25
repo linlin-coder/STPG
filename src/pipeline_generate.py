@@ -587,11 +587,6 @@ def main():
     elif "argo" in args.method:
         from Workflow.K8S_argo.argo_workflow import ARGO_workflow
         ReadJob = ARGO_workflow(job_file=args.template, parameter=project_para, outdir=outdir, pipe_bindir=pipe_bindir, sjm_method=args.method, project=args.project)
-        # volumeMounts = ReadJob.ascertain_data_mount()
-        # ReadJob.get_dependence()
-        # ReadJob.write_Command_to_file()
-        # ReadJob.DAG2yaml(dependence_dict, shell_dir=outdir, jobname=args.project,)
-        # ReadJob.delivary_pipeline(yaml_file='.')
     else:
         ReadJob = Parser_Job(job_file=args.template, parameter=project_para,outdir=outdir, pipe_bindir=pipe_bindir, sjm_method=args.method)
     # ReadJob.read_file()

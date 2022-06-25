@@ -35,6 +35,7 @@ pipeline:
         merge_data:
             Part:
                 - "sample"
+                - "sample2"
             Queue: "test.q"
             Image: "alpine:3.13.5"
             Depend:
@@ -51,9 +52,10 @@ pipeline:
                 - "merge_data_{Part[0]}"
             Part:
                 - "sample"
+                - "sample2"
             Command:
                 - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}.Output.A1>"
-                - "echo yes && whoami"
+                - "{resource.software.python3} {BIN} {job.JName} {job.CPU} {job.Memory}"
             Output:
                 QCP: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_QCP.txt"
 

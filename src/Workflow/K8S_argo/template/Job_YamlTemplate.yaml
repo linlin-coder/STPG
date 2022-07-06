@@ -17,6 +17,8 @@ container:
   args: []
   volumeMounts: []
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 5000
     runAsGroup: 511
 tolerations: []
 

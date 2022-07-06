@@ -20,6 +20,7 @@ class ARGO_workflow(Parser_Job):
 		self.job_file = job_file
 		# self.project_configdir = args.config
 		self.para = parameter
+		self.mount_list = []
 		self.job_list = ""  # this define job list file,and write on one raw
 		self.pipe_bindir = pipe_bindir
 		self.outdir = outdir
@@ -43,7 +44,7 @@ class ARGO_workflow(Parser_Job):
 				else:
 					values.update(line)
 		for value in values:
-			if not value.startswith('/'): continue
+			if not value or not value.startswith('/'): continue
 			path = os.path.realpath(value)
 			"""根目录为第一层，固定只检查前三层路径，后续有变动再修改"""
 			prefix_path = '/'.join(path.split('/', 3)[:3])
@@ -74,7 +75,7 @@ class ARGO_workflow(Parser_Job):
 		dag = DAG(jobname + '-dag')
 		for modules in self.pipeline_jobs:
 			for jobs in self.pipeline_jobs[modules]:
-				module_inifile = os.path.join(shell_dir, modules, jobs + '.ini')
+				module_inifile = os.path.join(shell_dir, modules, jobs.replace('_','-') + '.ini')
 				if not os.path.isfile(module_inifile):
 					std.fatal('can not find {}'.format(module_inifile), exit_code=1)
 				config = config_format(pub_config, module_inifile)
@@ -92,7 +93,7 @@ class ARGO_workflow(Parser_Job):
 				entrypoint, templates = ini2Job(config, os.path.join(shell_dir, modules, jobs))
 				pipeline.add_template(templates)
 				for a_job in self.pipeline_jobs[modules][jobs]:
-					dag.add_dependence(a_job.Name, dependencies[a_job.Name], entrypoint)
+					dag.add_dependence(a_job.Module+'-'+a_job.JName.replace('_','-'), dependencies[a_job.Module+'-'+a_job.JName.replace('_','-')], entrypoint)
 		pipeline.add_start_finish_template()
 		pipeline.add_template([dag])
 		pipeline.set_entrypoint(dag.name)
@@ -102,10 +103,11 @@ class ARGO_workflow(Parser_Job):
 	def write_jobs_to_DAG(self):
 		pass
 
-	def delivary_pipeline(self, is_run=True, log_file='', guard=True):
-		cmd = [ags_dir, 'submit', self.yaml_file]
+	def delivary_pipeline(self, is_run=True, guard=True):
+		log_file = os.path.join(self.outdir,'log.txt')
+		cmd = ' '.join([ags_dir, 'submit', self.yaml_file, '-n argo'])
 		if is_run:
-			p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+			p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 			submit_log = [i.decode() for i in p.stdout]
 			sys.stdout.write(''.join(submit_log))
 			if p.wait() != 0:
@@ -121,8 +123,8 @@ class ARGO_workflow(Parser_Job):
 				f.write('#WorkflowID: {}\n'.format(WorkflowID))
 			if guard:
 				while 1:
-					get_cmd = [ags_dir, 'get', WorkflowID]
-					get_p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE)
+					get_cmd = ' '.join([ags_dir, 'get', WorkflowID, '-n argo'])
+					get_p = subprocess.Popen(get_cmd, stdout=subprocess.PIPE, shell=True)
 					status = None
 					for line in get_p.stdout:
 						line = line.decode()
@@ -163,12 +165,13 @@ class ARGO_workflow(Parser_Job):
 			shell_name_dict[shell_basename] = shell_basename + '.sh'
 			with open(shsh, 'w') as f:
 				f.write('\n'.join(one_one_job.Command))
-			if one_one_job.JName not in JNameTasks:
-				JNameTasks[one_one_job.JName] = {}
-				JNameTasks[one_one_job.JName]['shell'] = {}
-			JNameTasks[one_one_job.JName]['shell'][shell_basename] = shell_basename + '.sh'
-			JNameTasks[one_one_job.JName]['Module'] = one_one_job.Module
-			JNameTasks[one_one_job.JName]['OneTask'] = one_one_job
+			DecorateJName = one_one_job.JName.replace('_','-')
+			if DecorateJName not in JNameTasks:
+				JNameTasks[DecorateJName] = {}
+				JNameTasks[DecorateJName]['shell'] = {}
+			JNameTasks[DecorateJName]['shell'][shell_basename] = shell_basename + '.sh'
+			JNameTasks[DecorateJName]['Module'] = one_one_job.Module
+			JNameTasks[DecorateJName]['OneTask'] = one_one_job
 
 		for JName,Task_dict in JNameTasks.items():
 			shell_name_dict = Task_dict['shell']
@@ -206,14 +209,13 @@ class ARGO_workflow(Parser_Job):
 				else:
 					dependecies_tmp=set(a_job.Depend)
 				dependecies=[]
-				print(a_job.Name)
 				dependeciesTasks = self.pipelineGraph.getVertex(a_job).prefix
 				'''for dependece in dependecies_tmp:
 					if dependece not in module_dict:
 						std.fatal('can not find depend module {} before module {}'.format(dependece,a_job.Name),exit_code=1)
 					dependecies.append(module_dict[dependece])'''
-				self.dependence_dict[a_job.Name]=[task.id.Name for task in dependeciesTasks]
-				# order_tmp=order
+				self.dependence_dict[a_job.Module+'-'+a_job.JName.replace('_','-')]=list(set([task.id.Module+'-'+task.id.JName.replace('_','-') for task in dependeciesTasks]))
+		print(self.dependence_dict)# order_tmp=order
 		# return dependence_dict,module_dict
 
 	def create_other_shsh(self):
@@ -260,8 +262,9 @@ def dump2JobINI(inifile,job_group_name, a_job,shell_name_dict):
 
 	job_config.add_section('shell')
 	for i in shell_name_dict:
+		shellname = i.replace('_','-')
 		shell=shell_name_dict[i]
-		job_config.set('shell',i,shell)
+		job_config.set('shell',shellname,shell)
 	#if len(shell_name_dict)>0:job_config.set('shell','{}-Finish'.format(a_job.Name),'FINISH-STEP')
 	with open(inifile,'w') as fout:
 		job_config.write(fout)

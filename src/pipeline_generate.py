@@ -508,6 +508,7 @@ class Parser_Job():#Deliver_DAG_Job):
 
     def Mount_new_disk(self, waiting_check_list):
         for onecheck in waiting_check_list:
+            if not onecheck:continue
             if isinstance(onecheck, list):
                 self.Mount_new_disk(onecheck)
             elif isinstance(onecheck, str):
@@ -601,9 +602,10 @@ def main():
     ReadJob.write_Command_to_file()
 
     # Mount the default unmounted path into the container, waiting develop
-    mountCheckList = copy.copy(project_config['sample'])
-    mountCheckList.append(list(project_db.values()))
-    mountCheckList.append(list(project_para.values())+[outdir])
+    for key, value in project_config.items():
+        mountCheckList = copy.copy(value)
+        mountCheckList.append(list(project_db.values()))
+        mountCheckList.append(list(project_para.values())+[outdir])
     ReadJob.Mount_new_disk(mountCheckList)
 
     # write dag file by enginer

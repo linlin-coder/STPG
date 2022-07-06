@@ -22,4 +22,6 @@ container:
     #- "cd {{inputs.parameters.ini_dir}} && echo {{inputs.parameters.FinishSign}} >{{inputs.parameters.module_name}}.sign"
   volumeMounts: []
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 5000
     runAsGroup: 511

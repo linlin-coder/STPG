@@ -45,7 +45,6 @@ class Job(dict):
 		self["tolerations"].append({"key":key,"value":value,"operator":"Equal","effect":"NoSchedule"})
 		self['nodeSelector'][key]=value
 	def set_resource(self,config_dict):
-		print(config_dict)
 		for i in re.split('\t|;',config_dict['nodeSelector'].strip()):
 			key, value = '', ''
 			i=i.strip()
@@ -130,14 +129,17 @@ class DAG(dict):
 		dict.__init__(self)
 		self.update({'dag':{'failFast':False,'tasks':[]}})
 		self.name=name
+		self.oldmodulename = ''
 		self.set_name(name)
 	def set_name(self,name):
 		self.name=name
 		self['name']=name
 	def add_dependence(self,module_name,depend,template_name):
 		if depend==['']:depend=[]
+		if module_name == self.oldmodulename: return
 		a_depend={'name':module_name,'dependencies':depend,'template':template_name}
 		self['dag']['tasks'].append(a_depend)
+		self.oldmodulename = module_name
 
 class Step(dict):
 	def __init__(self,name):

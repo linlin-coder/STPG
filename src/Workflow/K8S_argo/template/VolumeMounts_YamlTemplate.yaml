@@ -1,14 +1,6 @@
 - name: timezone
   mountPath: /etc/localtime
-- name: datayw
-  mountPath: /annogene/datayw
-- name: cloud
-  mountPath: /annogene/cloud
-- name: home
-  mountPath: /home
 - name: sge
   mountPath: /data/
 - name: workdir
   mountPath: /share/
-- name: nas
-  mountPath: /nas/

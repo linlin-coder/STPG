@@ -1,2 +1,5 @@
-PyYAML==6.0
-
+Jinja2
+Markdown
+pyDes==2.0.1
+pytablewriter
+PyYAML

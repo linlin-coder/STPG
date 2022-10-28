@@ -1,19 +1,13 @@
 import json
-
-from Workflow.version import tool_bin
-from jinja2 import PackageLoader, Environment
-from pipeline_generate import Parser_Job
-from lib.public_method import *
 from jinja2 import PackageLoader, Environment, FileSystemLoader
 
 from Workflow.version import tool_bin
 from lib.public_method import *
-from pipeline_generate import Parser_Job
+from Workflow.BaseParserJob.baseworkflow import Parser_Job
 
 bindir = os.path.realpath(os.path.dirname(__file__))
 
 __name__ = 'WDL_Workflow'
-# __version__ =
 '''
 将模板命令解析为WDL可以运行的任务，包含如下：
 按module划分，将任务写入到不同的task中，暂时不支持任务并行（不同看起来稍加修改，应该能实现并行）
@@ -21,13 +15,13 @@ __name__ = 'WDL_Workflow'
 '''
 
 class WDL_Workflow(Parser_Job):
-    def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project, tonfig):
+    def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
         super(WDL_Workflow,self).__init__(job_file, parameter, outdir, pipe_bindir, sjm_method)
         self.env = Environment(loader=FileSystemLoader(os.path.join(bindir, 'template')))
         self.pipeline_outdir = self.outdir
         self.project = project
-        self.tonfig = tonfig
-        self.config = Config(tonfig)
+        # self.tonfig = tonfig
+        # self.config = Config(tonfig)
 
     def write_children_taskwdl(self):
         """
@@ -89,6 +83,7 @@ class WDL_Workflow(Parser_Job):
         return project_input
 
     def create_other_shsh(self):
+        return
         java = self.config.all_block("software", "java")
         cromwell = self.config.all_block("software", "cromwell")
         HPC_conf = os.path.join(tool_bin,'Workflow/Cromwell/template/sge_singularity.beckend.conf')

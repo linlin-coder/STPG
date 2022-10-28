@@ -1,1 +1,0 @@
-/usr/bin/singularity exec --cleanenv -B [ -B ] alpine:3.13.5 /bin/bash  `readlink -f $1`

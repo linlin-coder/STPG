@@ -7,10 +7,11 @@ import time
 import yaml
 
 import Workflow
+import lib.public_method
 from Workflow.K8S_argo.Define_pipeline import *
 from Workflow.version import __version__
 from lib.public_method import myconf as Config
-from pipeline_generate import Parser_Job
+from Workflow.BaseParserJob.baseworkflow import Parser_Job
 
 bindir=os.path.dirname(os.path.realpath(__file__))
 std.filename = os.path.basename(__file__)
@@ -103,6 +104,12 @@ class ARGO_workflow(Parser_Job):
 	def write_jobs_to_DAG(self):
 		pass
 
+	def _cleanup(self):
+		alltask = self.pipelineGraph.getVertices()
+		for oneTask in alltask:
+			lib.public_method.subprocess_run('rm -f {0}*.sh*'.format(os.path.join(oneTask.Shell_dir, oneTask.Module)))
+			lib.public_method.subprocess_run('rm -f {0}/*/*.{{ini,sign}}'.format(self.outdir))
+
 	def delivary_pipeline(self, is_run=True, guard=True):
 		log_file = os.path.join(self.outdir,'log.txt')
 		cmd = ' '.join([ags_dir, 'submit', self.yaml_file, '-n argo'])
@@ -147,7 +154,8 @@ class ARGO_workflow(Parser_Job):
 						exit_status = 2
 						break
 					get_p.wait()
-					time.sleep(180)
+					time.sleep(10)
+				self._cleanup()
 				sys.exit(exit_status)
 
 	def write_Command_to_file(self):

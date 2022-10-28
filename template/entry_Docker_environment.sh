@@ -1,1 +1,0 @@
-/usr/bin/singularity shell --cleanenv -B [ -B ] alpine:3.13.5  

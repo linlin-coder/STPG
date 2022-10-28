@@ -6,7 +6,7 @@ import os,shutil
 import re
 import subprocess
 import sys
-
+import random, string
 import yaml
 
 bindir = os.path.realpath(os.path.dirname(__file__))
@@ -137,6 +137,18 @@ def get_succeeds(job,order_relation):
             recursiveSucceeds.extend(get_succeeds(each,order_relation))
     return recursiveSucceeds
 
+def obtain_dir_rank(onedir, level=3, isend="/"):
+    if not os.path.exists(onedir):
+        return None
+    if os.path.isfile(onedir):
+        basedir = os.path.dirname(onedir)
+        rankdir = '/'.join(basedir.split("/")[:level])+isend
+    elif os.path.isdir(onedir):
+        rankdir = '/'.join(onedir.split("/")[:level]) + isend
+    else:
+        return None
+    return rankdir
+
 def subprocess_run(cmd):
     std.info('Running command is:{0}'.format(cmd))
     back = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE,encoding="utf-8",timeout=1)#,timeout=1,encoding='utf-8',
@@ -155,12 +167,16 @@ def read_yaml(files):
         return(config)
 
 class Yaml2Object:
-    def __init__(self):
+    def __init__(self, yamlfile:str, target :str=""):
         self.yamldict = {}
-        self.yamlObject = object
+        self.yamlfile = yamlfile
+        self.target = target
 
-    def parseryaml(self, yamlfile):
-        self.yamldict = read_yaml(yamlfile)
+    @property
+    def parseryaml(self):
+        self.yamldict = read_yaml(self.yamlfile)
+        yamlObject = self.solution(self.yamldict[self.target])
+        return yamlObject
 
     def solution(self, yamldict):
         """
@@ -247,3 +263,11 @@ class multidict(dict):
     def __missing__(self, key):
         value = self[key] = type(self)()
         return value
+
+def random_strings(StrNum):
+    stringrandom = ''.join(random.sample(string.ascii_letters + string.digits, StrNum))
+    return stringrandom
+
+def get_user_name():
+    user_name = getpass.getuser()
+    return user_name

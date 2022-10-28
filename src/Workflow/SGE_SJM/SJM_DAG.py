@@ -1,6 +1,6 @@
 # from lib.public_method import *
 from lib.public_method import *
-from pipeline_generate import Parser_Job
+from Workflow.BaseParserJob.baseworkflow import Parser_Job
 from Workflow.version import tool_bin as bin_tool
 
 class Deliver_DAG_Job():

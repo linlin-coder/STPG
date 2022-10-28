@@ -1,1 +1,0 @@
-/usr/bin/singularity shell --cleanenv -B /share/public/:/share/public/:ro -B /share/science/:/share/science/ -B /share/work2/:/share/work2/ alpine:3.13.5  

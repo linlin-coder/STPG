@@ -27,8 +27,7 @@ default:
     Image: "alpine:3.13.5"
     Mount: 
         - "/share/public/:/share/public/:ro"
-        - "/share/science/:/share/science/"
-        - "/share/work2/:/share/work2/"
+        - "/data/:/data/"
 
 pipeline:
     QC:
@@ -40,7 +39,11 @@ pipeline:
             Image: "alpine:3.13.5"
             Depend:
                 -
-            Command: "{resource.software.make} -f {BIN}/Modules/QC.mk   outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} sample_id={Part[0]} merge_data"
+            Command: 
+            - |
+                {resource.software.make} -f {BIN}/Modules/QC.mk   outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} sample_id={Part[0]} merge_data
+                {resource.software.python3} --version
+                echo "my\topi\n" > test.sh
             Output:
                 A1: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_table1.xls"
                 A2: "{OUTDIR}/{MainModule}/{ChildModule}/picture1.xls"

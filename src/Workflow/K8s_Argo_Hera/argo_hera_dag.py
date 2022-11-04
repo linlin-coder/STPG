@@ -144,6 +144,7 @@ class MyTask(Task):
         if not self.taskOne.Command: self.command = ['sh', '-c', self.taskOne.Command]
 
 class ArgoHera_Job(Parser_Job):
+    Name = "k8s-argo-Hera"
     def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
         self.job_file = job_file
         self.separate = ";"

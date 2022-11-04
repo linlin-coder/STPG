@@ -192,10 +192,13 @@ class Graph():  # 图 => 由顶点所构成的图
 
     def getPath(self, key):
         keyobject = self.getVertex(key)
+        # print(keyobject.prefix,dir(keyobject))
         routeTask = []
-        while keyobject.prefix != None:
-            keyobject = keyobject.prefix
-            routeTask.append(keyobject.id)
+        # print(keyobject.connectedTo, dir(keyobject))
+        while keyobject.connectedTo != {}:
+            keyobject = list(keyobject.connectedTo.keys())[0]
+            # print(keyobject,dir(keyobject))
+            routeTask.append(keyobject.id) 
         # routeTask.append(keyobject.id)  # 把根节点加上
         return routeTask
 

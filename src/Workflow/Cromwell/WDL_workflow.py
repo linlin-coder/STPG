@@ -15,6 +15,7 @@ __name__ = 'WDL_Workflow'
 '''
 
 class WDL_Workflow(Parser_Job):
+    Name = "WDL_Workflow"
     def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
         super(WDL_Workflow,self).__init__(job_file, parameter, outdir, pipe_bindir, sjm_method)
         self.env = Environment(loader=FileSystemLoader(os.path.join(bindir, 'template')))
@@ -39,13 +40,13 @@ class WDL_Workflow(Parser_Job):
         for modules in self.pipeline_jobs:
             for jobs in self.pipeline_jobs[modules]:
                 one_job = self.pipeline_jobs[modules][jobs]
-                jinja2_render = self.env.get_template(os.path.join('subtask.wdl')).render(children_jobs=one_job).replace('{|','{')
+                jinja2_render = self.env.get_template(os.path.join('subtask.wdl')).render(children_jobs=one_job, pipelineGraph=self.pipelineGraph).replace('{|','{')
                 subtask_file = os.path.join(self.pipeline_outdir,'module',modules,jobs+'.task.wdl')
                 makedir(os.path.dirname(subtask_file))
                 with open(subtask_file, 'w') as fo:fo.write(jinja2_render)
 
     def write_pipeline_workflow(self):
-        jinja2_render = self.env.get_template(os.path.join('pipeline.workflow.wdl')).render(pipeline_jobs=self.pipeline_jobs)
+        jinja2_render = self.env.get_template(os.path.join('pipeline.workflow.wdl')).render(pipeline_jobs=self.pipeline_jobs, pipelineGraph=self.pipelineGraph)
         self.pipeline_file = os.path.join(self.pipeline_outdir, 'module', 'pipeline.workflow.wdl')
         with open(self.pipeline_file, 'w') as fo: fo.write(jinja2_render)
         # 拷贝公共函数wdl文件
@@ -54,7 +55,7 @@ class WDL_Workflow(Parser_Job):
     def delivary_pipeline(self, is_run=False):
         # return WDL_cmd
         if is_run:
-            p = subprocess.Popen(self.WDL_cmd, stdout=subprocess.PIPE)
+            p = subprocess.Popen(self.WDL_cmd, shell=True,stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             submit_log = [i.decode() for i in p.stdout]
             sys.stdout.write(''.join(submit_log))
             if p.wait() != 0:
@@ -69,13 +70,9 @@ class WDL_Workflow(Parser_Job):
 
     def rewrite_input_josn(self):
         input_template = os.path.join(tool_bin, 'Workflow/Cromwell/template/input.json')
-        mount_str_list = self.config.all_block("mount", "mount").split("|")
-        mount_str_new = " ".join(map(lambda x:" -B "+x, mount_str_list))
         with open(input_template, 'r') as f_input:
             input_content = json.load(f_input)
-        input_content["pipeline.sge_mount"] = mount_str_new
-        #input_content["pipeline.outdir"] = self.pipeline_outdir
-        _ = input_content.pop("pipeline.outdir",'404')
+        # input_content["pipeline.outdir"] = self.pipeline_outdir
         input_content["pipeline.config_json"] = os.path.join(tool_bin, 'Workflow/Cromwell/template/config.json')
         project_input = os.path.join(self.pipeline_outdir,'input.json')
         with open(project_input, 'w') as f_input:
@@ -83,13 +80,11 @@ class WDL_Workflow(Parser_Job):
         return project_input
 
     def create_other_shsh(self):
-        return
-        java = self.config.all_block("software", "java")
-        cromwell = self.config.all_block("software", "cromwell")
-        HPC_conf = os.path.join(tool_bin,'Workflow/Cromwell/template/sge_singularity.beckend.conf')
+        java = self.globalMSG.software.java
+        cromwell = self.globalMSG.software.Cromwell
+        HPC_conf = self.globalMSG.path.WDLBeckendConf
         input_json = self.rewrite_input_josn()
-        self.WDL_cmd = f'''{java} -Dconfig.file={HPC_conf} -jar {cromwell} run {self.pipeline_file} -i {input_json}\n'''
-        shsh = os.path.join(self.pipeline_outdir, 'wdl_run.sh')
-        # sh_cmd = self.delivery_task()
+        self.WDL_cmd = f'''{java} -Dconfig.file={HPC_conf} -jar {cromwell} run {self.pipeline_file} -i {input_json}'''
+        shsh = os.path.join(self.pipeline_outdir, self.project + '_wdl_run.sh')
         with open(shsh, 'w') as fo:fo.write(self.WDL_cmd)
 

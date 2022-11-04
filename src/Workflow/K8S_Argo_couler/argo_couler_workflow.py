@@ -131,6 +131,7 @@ class MyTask():
         # wf["spec"]["templates"][1]["container"]["securityContext"] = securityContext.defineSecurityContext()
 
 class ArgoCouler(Parser_Job):
+    Name = "k8s-argo-Couler"
     def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
         self.job_file = job_file
         self.para = parameter

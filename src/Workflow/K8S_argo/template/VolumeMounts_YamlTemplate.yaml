@@ -1,6 +1,0 @@
-- name: timezone
-  mountPath: /etc/localtime
-- name: sge
-  mountPath: /data/
-- name: workdir
-  mountPath: /share/

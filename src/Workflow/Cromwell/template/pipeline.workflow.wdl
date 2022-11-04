@@ -1,6 +1,5 @@
 version 1.0
 
-# import "./Fastqc/fqtools.task.wdl" as fqtools
 {% for modules in pipeline_jobs %}
 {% for jobs in pipeline_jobs[modules] %}
 import "./{{ modules }}/{{ jobs }}.task.wdl" as {{ jobs }}
@@ -22,11 +21,11 @@ workflow pipeline{
 	{% for job in pipeline_jobs[modules][jobs] %}
 	call {{ jobs }}.{{ job.Name }}  as  {{ job.Name }} {
 		input:
-			sge_mount = sge_mount,
+			sge_mount = "{{ ' -v '.join(job.Mount) }}",
 			docker = "{{ job.Image }}",
-			{% for depend in job.Depend %}
-			{{ depend }}_mark =  {{ depend }}.{{ depend }}_mark,
-			{% endfor %}
+		{% for depend in pipelineGraph.getVertex(job).prefix %}
+			{{ depend.id.Name }}_mark =  {{ depend.id.Name }}.{{ depend.id.Name }}_mark,
+		{% endfor %}
 	}
 	{% endfor %}
 

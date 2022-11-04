@@ -3,9 +3,9 @@ version 1.0
 task {{ job.Name }} {
     input {
         String? docker
-        {% for depend in job.Depend %}
-        String {{ depend }}_mark
-        {% endfor %}
+    {% for depend in pipelineGraph.getVertex(job).prefix %}
+        String {{ depend.id.Name }}_mark
+    {% endfor %}
         Int? cpu = {{ job.CPU }}
         String? sge_queue="{{ job.Queue }}"
         String? memory = "{{ job.Memory }}"
@@ -15,14 +15,15 @@ task {{ job.Name }} {
     command<<<
         set -e
         set -o
-        {% for depend in job.Depend %}
-        echo ~{|{{ depend }}_mark}
-        echo {{ job.Name }} depend {{ depend }}
-        {% endfor %}
+    {% for depend in pipelineGraph.getVertex(job).prefix %}
+        echo ~{|{{ depend.id.Name }}_mark}
+        echo {{ job.Name }} depend {{ depend.id.Name }}
+    {% endfor %}
         if [[ "{{ job.Status }}" == "done" ]];then
             echo "don't run again";
         else
-            singularity run --cleanenv ~{sge_mount} ~{docker} /bin/bash {{ job.Shell_dir }}/{{ job.Module }}_{{ job.Name }}.sh;
+            # docker run --rm --user $(id -u ${USER}):$(id -g ${USER}) -v ~{sge_mount} ~{docker} 
+            /bin/bash {{ job.Shell_dir }}/{{ job.Module }}-{{ job.Name }}.sh;
         fi
     >>>
 

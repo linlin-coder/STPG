@@ -5,18 +5,21 @@ resource:
        qualify: "True:qualified|False:<font color=\"red\">unqualified</font>"
     
     software:
-       make: "/mingw64/bin/make"
-       python3: "/usr/bin/python3"
-       python2: "/usr/bin/python"
+       make: /usr/bin/make
+       python3: /usr/bin/python3
+       python2: /usr/bin/python
        perl: "/usr/bin/perl"
-       java: "/usr/bin/java"
+       java: /data/linlinData/Software/jdk-13/bin/java
        sjm: "/usr/bin/sjm"
        docker: "/usr/bin/docker"
+       Cromwell: /data/linlinData/Software/cromwell-84.jar
        singularity: "/usr/bin/singularity"
 
     path:
        BIN: ""
        SGERoot: "/opt/gridengine"
+    #    WDLBeckendConf: /data/linlinData/Workflow/STPG/src/Workflow/Cromwell/template/sge_singularity.beckend.conf
+       WDLBeckendConf: /data/linlinData/Workflow/STPG/src/Workflow/Cromwell/template/local_docker.beckend.conf
 
 
 default:
@@ -58,7 +61,7 @@ pipeline:
                 - "sample2"
             Command:
                 - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}.Output.A1>"
-                - "{resource.software.python3} {BIN} {job.JName} {job.CPU} {job.Memory}"
+                - "echo {BIN} {job.JName} {job.CPU} {job.Memory}"
             Output:
                 QCP: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_QCP.txt"
 

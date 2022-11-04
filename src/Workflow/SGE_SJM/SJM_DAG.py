@@ -1,4 +1,3 @@
-# from lib.public_method import *
 from lib.public_method import *
 from Workflow.BaseParserJob.baseworkflow import Parser_Job
 from Workflow.version import tool_bin as bin_tool
@@ -6,13 +5,9 @@ from Workflow.version import tool_bin as bin_tool
 class Deliver_DAG_Job():
     def __init__(self,job_file, parameter, outdir, pipe_bindir, sjm_method):
         self.Env = ''
-        # self.config = Config(self.tonfig)
-        # container_method = self.sjm_method.split('-')[-2]
-        # self.get_software_lib(container_method)
 
     def normal_qsub(self, Image):
-        env_one = 'sh'
-        self.Env = env_one
+        self.Env = 'sh'
 
     def DefineDefault(self) -> None:
         container_method = self.sjm_method.split('-')[-2]
@@ -21,7 +16,7 @@ class Deliver_DAG_Job():
     def judge_dir_exist(self, config_mount):
         for onemount in config_mount:
             outdir = onemount.split(":")[0]
-            if 1:#obtain_file_realpath(outdir):
+            if obtain_file_realpath(outdir):
                 test_mount = '/'.join(outdir.split("/")[:3]) + ":" + '/'.join(outdir.split("/")[:3]) + ":ro"
                 if test_mount not in self.mount_list:
                     self.mount_list.append(onemount)
@@ -34,11 +29,16 @@ class Deliver_DAG_Job():
         self.sge_root = self.globalMSG.path.SGERoot
 
     def public_qsub(self, Image, mount_list):
-        container_method = self.sjm_method.split('-')[-2]
         self.judge_dir_exist(mount_list)
         if Image:
-            eval_cmd = 'self.{0}_qsub("{1}")'.format(container_method, Image)
-            eval(eval_cmd)
+            # eval_cmd = 'self.{0}_qsub("{1}")'.format(container_method, Image)
+            # eval(eval_cmd)
+            if hasattr(self.globalMSG.software, "docker"):
+                self.docker_qsub(Image)
+            elif hasattr(self.globalMSG.software, "singularity"):
+                self.singularity_qsub(Image)
+            else:
+                self.std.error("Please specify the path of container engine docker or singularity in software sector!!!")
         else:
             self.normal_qsub(self.software, self.mount_list, Image)
 
@@ -62,9 +62,9 @@ class Deliver_DAG_Job():
                 break
 
 class SJM_Job(Parser_Job,Deliver_DAG_Job):
+    Name = "sge-docker-sjm"
     def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
         self.job_file = job_file
-        # self.project_configdir = args.config
         self.para = parameter
         self.mount_list = []
         self.job_list = ""  # this define job list file,and write on one raw
@@ -72,9 +72,7 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
         self.project = project
         self.outdir = outdir
         self.sjm_method = sjm_method
-        # self.pipeline_jobs_dict = multidict()
         super(SJM_Job,self).__init__(job_file, parameter, outdir, pipe_bindir, sjm_method)
-        # super(SJM_Job,self).__init__(sjm_method)
 
     def write_jobs_to_DAG(self,):
         self.DefineDefault()
@@ -129,7 +127,7 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
         environment = os.path.join(self.outdir, 'sh_Docker_environment.sh')
         if self.sjm_method != 'normal':
             with open(environment, 'w') as f_env:
-                f_env.write(self.Env.replace('--rm','--rm -it') + ' `readlink -f $1`')#.replace('/bin/bash','').replace('singularity run','singularity shell')
+                f_env.write(self.Env.replace('--rm','--rm -it') + ' `readlink -f $1`')
 
         environment = os.path.join(self.outdir, 'entry_Docker_environment.sh')
         if self.sjm_method != 'normal':
@@ -145,10 +143,6 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
     def rewrite_file(self, job_tmp_dict, order_list, rewrite_file):
         rewrite_target = ["name", 'sched_options', "status", "cmd"]
         with open(rewrite_file,'w') as fi:
-            # for job_name, job_dict in job_tmp_dict.keys():
-            #     fi.write('job_begin')
-            #     for key, value in job_dict.keys():
-            #         pass
             for job_name, job_dict in job_tmp_dict.items():
                 fi.write('job_begin\n')
                 for rewrite in rewrite_target:

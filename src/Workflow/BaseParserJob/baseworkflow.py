@@ -16,7 +16,7 @@ from lib.graph import DFSGraph as Graph
 from lib.tree_dict_display import print_tree
 from lib.QC_Result import *
 from Workflow.version import __author__, __date__, __mail__, tool_bin
-from Workflow import GlobalPara
+# from Workflow import GlobalPara
 
 pat1 = re.compile('^\s+$')
 # pat2 = re.compile('\$\((\S+?)\)(\[\d+\])')
@@ -25,14 +25,21 @@ pat3 = re.compile('(Para_[A-Za-z0-9_-]+)\\\\?')
 pat4 = re.compile('(DB_[A-Za-z0-9_-]+)\\\\?')
 pat5 = re.compile('\S*make\s+')
 pat6 = re.compile('\<(\S+?)\>')  # marking output attribute
-ReserveWord = ['OUTDIR','BIN','LOGFILE']
+pat7 = re.compile('/\S+make$')
 
-globalpara = GlobalPara()
 std = Log(os.path.basename(__file__))
 
 class Output(object):
     def __init__(self):
         pass
+
+class GlobalPara:
+    global_sign = 'sign'
+    configfile = ''
+    def define_sign(self,):
+        yamldict = read_yaml(self.configfile)["resource"]
+        self.global_sign=yamldict['sign']['finish_sign']
+globalpara = GlobalPara()
 
 class JOB_attribute():
     def __init__(self):
@@ -57,8 +64,7 @@ class JOB_attribute():
         self.key_list = ['Name', 'Env', 'Image', 'Command',
                 'Description', 'Part', 'QC', 'Mount',
                 'Depend', 'Queue', "Status", "Shell_dir",
-                'CPU', 'Memory','Output']#'sched_options',
-        # super(Deliver_DAG_Job,self).__init__('', '')
+                'CPU', 'Memory','Output']
 
     def addAtribute(self, key, value):
         if key in self.key_list:
@@ -161,6 +167,13 @@ class JOB_attribute():
             if key == 'Depend':
                 for line in getattr(self, key, []):
                     depend_job = line.split(" ")[-1]
+    # @property
+    def check_mount_exists(self):
+        new_mount_list = []
+        for mount_pair in self.Mount:
+            if os.path.exists(mount_pair.split(":")[0]):
+                new_mount_list.append(mount_pair)
+        self.Mount = new_mount_list
 
 class TaskOrdinaryTree(Graph):
     """
@@ -170,6 +183,7 @@ class TaskOrdinaryTree(Graph):
     pass
 
 class Parser_Job():
+    Name = 'baseworkflow'
     def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method):
         self.pipelineGraph = Graph()
         self.cost = 1 # define weight of graph vertice
@@ -273,6 +287,7 @@ class Parser_Job():
                 a_job = self.pipeline_jobs[modules][a_job_name]
                 for index,one_a_job in enumerate(a_job):
                     makedir(one_a_job.Shell_dir)
+                    one_a_job.check_mount_exists()
                     self.define_jobs_pub(one_a_job)
                     self.relyon_status_mark(modules, one_a_job)
                     self.pipeline_jobs_name[modules][a_job_name][one_a_job.Name] = index
@@ -297,7 +312,6 @@ class Parser_Job():
                     self.pipelineGraph.addEdge(f=one_depend_job, t=a_job, cost=self.cost)
             elif target_path_list and len(target_path_list) == 1:# main module depend define
                 depend_module = self.pipeline_jobs[target_path_list[0]]
-                # a_job.Depend.remove('{0}'.format(target_path_list[0]))
                 if target_path_list[0] not in self.modules_list:continue
                 for childmodule in depend_module:
                     for one_depend_job in depend_module[childmodule]:
@@ -312,11 +326,11 @@ class Parser_Job():
                     a_job.Depend.remove(one_thisjob_depend)
 
     def resolution_makefile_unfold(self, cmd_str):
-        return cmd_str
         new_cmd_str, new_cmd_list = '', ['set -e', 'set -o']
         cmd_list = cmd_str.split(' {sep}'.format(sep=self.separate))
         for cmd in cmd_list:
-            if pat5.search(cmd):
+            # print("cmd:",cmd)
+            if pat5.search(cmd) or pat7.search(cmd.split(" ")[0]):
                 tmp_list = os.popen(cmd + ' -n').readlines()
                 tmp_list[-1] = tmp_list[-1].rstrip()
                 tmp_str = "".join(tmp_list)
@@ -363,8 +377,6 @@ class Parser_Job():
                     run_sample = []
                     for i in a_job.Part:
                         run_sample.extend(config[i])
-                    #run_sample.extend([ config[i] for i in a_job.Part ])
-                    # pre_job_count = 0
 
                     if len(run_sample) > 0:
                         for index, value in enumerate(sorted(run_sample)):
@@ -374,7 +386,7 @@ class Parser_Job():
                                                                               OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                               MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
                                                                               resource=self.globalMSG)
-                            # evaled_cmd = eval(eval_cmd)
+
                             evaled_cmd = self.jobobject_overloading2(evaled_cmd, tmp_a_job)
                             cmd = self.resolution_makefile_unfold(evaled_cmd)
                             if self.connector == '_':
@@ -543,7 +555,10 @@ class Parser_Job():
                         continue
                     new_mount_str = '/'.join(onecheck_splited[:3]) + ":" + '/'.join(onecheck_splited[:3]) + ":ro"
                     # if new_mount_str not in self.mount_list:
-                        # self.mount_list.append(new_mount_str)
+                    #     self.mount_list.append(new_mount_str)
             else:
                 std.error("The configuration file information is abnormal. Please check it,{0}".format(onecheck))
+    
+    def write_jobs_to_DAG(self):
+        pass
 

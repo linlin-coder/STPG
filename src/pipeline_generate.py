@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 # -*- coding: gbk -*-
 
 import argparse
@@ -11,20 +12,16 @@ sys.path.append(os.path.join(bin_tool,'lib'))
 from lib.authority import Authorize, AuthorCode
 from lib.QC_Result import *
 
-### workflow method import  ###
-from Workflow.Cromwell.WDL_workflow import WDL_Workflow
-from Workflow.SGE_SJM.SJM_DAG import SJM_Job
-from Workflow.K8S_argo.argo_workflow import ARGO_workflow
-from Workflow.K8s_Argo_Hera.argo_hera_dag import ArgoHera_Job
-from Workflow.BaseParserJob.baseworkflow import Parser_Job
-from Workflow.K8S_Argo_couler.argo_couler_workflow import ArgoCouler
-
 std = Log(os.path.basename(__file__))
 
 from Workflow.version import __author__, __date__, __mail__, tool_bin
-from Workflow import GlobalPara
+from Workflow import (
+    GlobalPara, 
+    method2class
+)
 
 globalpara = GlobalPara()
+
 '''
 1. �ó�����config.ini ��job.template��job.listΪ�������ɷ�������
 '''
@@ -64,18 +61,13 @@ def main():
     parser.add_argument('-t', '--template', help='template file', dest='template',required=True)
     parser.add_argument('-l', '--list', help='job list file', dest='joblist')
     parser.add_argument('-m', '--method', help='run job method using SJM', dest='method',default='singularity',
-                        choices=['sge-singularity-sjm','sge-docker-sjm','sge-normal-sjm','k8s-docker-argo1',
-                                 'k8s-docker-argo2','k8s-docker-argo3'])
+                        choices=list(method2class.keys()))
     parser.add_argument('-r', '--run', help='run analysis pipeline', dest='run',action='store_true')
     parser.add_argument('-o', '--outdir', help='analysis result outdir', dest='outdir',type=str)
 
     args = parser.parse_args()
     #parameter deal
     makedir(args.outdir)
-
-    method2class = {'sge-singularity-sjm':WDL_Workflow,'sge-docker-sjm':SJM_Job,'sge-normal-sjm':SJM_Job,
-                    'k8s-docker-argo1':ARGO_workflow,'k8s-docker-argo2':ArgoHera_Job,"others":Parser_Job,
-                    "k8s-docker-argo3":ArgoCouler}
 
     outdir = obtain_file_realpath(args.outdir)
     pipe_bindir = obtain_file_realpath(args.bindir)
@@ -91,8 +83,6 @@ def main():
                                         outdir=outdir, pipe_bindir=pipe_bindir,
                                         sjm_method=args.method, project=args.project)
 
-    # ReadJob.read_file()
-    # print(ReadJob.separate)
     ReadJob.config_element_iteration(project_config, project_para, project_db)
     if args.joblist:
         need_run_modules = ReadJob.obtain_jobset_list(args.joblist)

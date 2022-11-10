@@ -2,7 +2,7 @@ version 1.0
 {% for job in children_jobs %}
 task {{ job.Name }} {
     input {
-        String? docker
+        String docker
     {% for depend in pipelineGraph.getVertex(job).prefix %}
         String {{ depend.id.Name }}_mark
     {% endfor %}
@@ -23,12 +23,13 @@ task {{ job.Name }} {
             echo "don't run again";
         else
             # docker run --rm --user $(id -u ${USER}):$(id -g ${USER}) -v ~{sge_mount} ~{docker} 
-            /bin/bash {{ job.Shell_dir }}/{{ job.Module }}-{{ job.Name }}.sh;
+            /bin/sh {{ job.Shell_dir }}/{{ job.Module }}-{{ job.Name }}.sh;
         fi
     >>>
 
     runtime {
         cpu: cpu
+        docker: docker
         memory: memory
         sge_mount: sge_mount
         sge_queue: sge_queue

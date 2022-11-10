@@ -57,7 +57,7 @@ class JOB_attribute():
         self.Image = ""
         self.JName = ''
         self.Shell_dir = ""
-        self.Status = "waiting"
+        self.Status = "waiting"  # ['waiting', 'done', 'failed']
         self.Description = ''
         self.Part = []
         self.Module = ''
@@ -103,7 +103,7 @@ class JOB_attribute():
                 tt.append(" ".join(mm))
         tt.append('echo ==========end at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
         tt.append('echo {} 1>&2'.format(globalpara.global_sign))
-        tt.append('echo {0} >$0.{0}'.format(globalpara.global_sign))
+        tt.append('echo {0} >{1}.{0}'.format(globalpara.global_sign, os.path.join(self.Shell_dir, '{0}-{1}.sh'.format(self.Module, self.Name))))
         output = f" {sep}".join(tt) + '\n'
         # print(tt)
         return [len(tt), output]
@@ -277,6 +277,7 @@ class Parser_Job():
     def relyon_status_mark(self, module, one_job):
         globalpara.define_sign()
         markfile = os.path.join(one_job.Shell_dir, '{0}-{1}.sh.{2}'.format(module, one_job.Name, globalpara.global_sign))
+        print(markfile)
         if os.path.exists(markfile):
             one_job.Status = "done"
 
@@ -358,6 +359,7 @@ class Parser_Job():
 
                 if a_job.Part == []:
                     a_job.Module = modules
+                    a_job.JName = a_job_name
                     evaled_cmd = a_job.format_command(sep=self.separate)[1].format(
                                                                   OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                   MainModule=a_job.Module, ChildModule=a_job_name,
@@ -368,7 +370,6 @@ class Parser_Job():
                     cmd = self.resolution_makefile_unfold(evaled_cmd)
 
                     a_job.Command = [cmd]
-                    a_job.JName = a_job_name
                     a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name)
                     a_job.format_Part('', outdir=self.outdir)
                     self.pipeline_jobs[modules][a_job_name] = [a_job]
@@ -382,6 +383,9 @@ class Parser_Job():
                         for index, value in enumerate(sorted(run_sample)):
                             tmp_a_job = copy.deepcopy(a_job)
                             tmp_a_job.Module = modules
+                            tmp_a_job.JName = a_job_name                            
+                            tmp_a_job.Name += self.connector + str(value[0])
+
                             evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value ,db=db,
                                                                               OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                               MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
@@ -394,9 +398,7 @@ class Parser_Job():
                             elif self.connector == '-':
                                 value[0] = str(value[0]).replace("_", self.connector)
 
-                            tmp_a_job.Name += self.connector + str(value[0])
                             tmp_a_job.Command = [cmd]
-                            tmp_a_job.JName = a_job_name
                             tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value)
                             tmp_a_job.format_Part(value, outdir=self.outdir)
                             if index == 0:
@@ -419,7 +421,7 @@ class Parser_Job():
                     one_loading_obj = pat6.search(j).group(1).split(".")[0]
                     j = pat6.sub(r"{\1}", j)
 
-                    input_task_dir = get_dict_target.getpath(self.pipeline_jobs, one_loading_obj)
+                    input_task_dir = get_dict_target.getpath(self.pipeline_jobs, self.replace_jobname(one_loading_obj))
                     if input_task_dir:
                         if len(input_task_dir) == 1: std.error(
                             "Output cannot be set for main task:{0}".format(input_task_dir[0]))

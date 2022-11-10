@@ -7,11 +7,12 @@
 @Date ：2022/7/13 11:19 
 '''
 import os
-
+import time
 import pyaml
 from collections import OrderedDict
 import couler.argo as couler
 from couler.argo_submitter import ArgoSubmitter
+from couler.core.constants import CronWorkflowCRD, WorkflowCRD
 from couler.core.templates import (
     volume
 )
@@ -113,7 +114,10 @@ class MyTask():
         if self.taskOne.CPU:     self.max_cpu = self.taskOne.CPU
         if self.taskOne.Memory:  self.max_mem = self.taskOne.Memory
         if self.taskOne.Image:   self.image = self.taskOne.Image
-        if self.taskOne.Command: self.command = ['sh', '-c', ';'.join(self.taskOne.Command)]
+        if self.taskOne.Status == 'done':
+            if self.taskOne.Command: self.command = ['sh', '-c', f'echo Task:{self.TaskName} finished, don,t running again!!!']
+        else:
+            if self.taskOne.Command: self.command = ['sh', '-c', ';'.join(self.taskOne.Command)]
 
     def run2container(self):
         couler.run_container(
@@ -132,7 +136,7 @@ class MyTask():
 
 class ArgoCouler(Parser_Job):
     Name = "k8s-argo-Couler"
-    def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project):
+    def __init__(self, job_file, parameter, outdir, pipe_bindir, sjm_method, project, namespace="argo"):
         self.job_file = job_file
         self.para = parameter
         self.mount_list = []
@@ -141,7 +145,8 @@ class ArgoCouler(Parser_Job):
         self.project = project
         self.outdir = outdir
         self.sjm_method = sjm_method
-        self.submitter = ArgoSubmitter(namespace="argo")
+        self.namespace = namespace
+        self.submitter = ArgoSubmitter(namespace=namespace)
         self.define_workflow()
         super(ArgoCouler,self).__init__(job_file, parameter, outdir, pipe_bindir, sjm_method)
         self.separate = ";"
@@ -149,7 +154,7 @@ class ArgoCouler(Parser_Job):
         self.read_file()
 
     def define_workflow(self):
-        print(MyTaskSecurityContext().get_security_context())
+        # print(MyTaskSecurityContext().get_security_context())
         couler.config_workflow(name=f'workflow-{self.project}', service_account='argo')
         couler.states.workflow.set_security_context(securityContext.defineSecurityContext())
         # volume.Volume()
@@ -183,13 +188,60 @@ class ArgoCouler(Parser_Job):
     def create_other_shsh(self):
         pass
 
-    def delivary_pipeline(self, is_run=True, log_file='', guard=True):
+    def delivary_pipeline(self, is_run=True, log_file:str='', guard:bool=True, interval:int=100):
 
         self.outyaml = os.path.join(self.outdir,f'workflow-{self.project}.yaml')
         with open(self.outyaml, 'w') as f_yaml:
             f_yaml.write(pyaml.dump(couler.workflow_yaml(), string_val_style="plain"))
 
         if is_run:
-            couler.run(submitter=self.submitter)
+            workflow_run_json = couler.run(submitter=self.submitter)
+            time.sleep(5)
+            workflow_id = workflow_run_json['metadata']['name']
+            
             if guard:
-                pass
+                while True:
+                    status = self.submitter._custom_object_api_client.get_namespaced_custom_object(
+                            group=WorkflowCRD.GROUP, 
+                        version=WorkflowCRD.VERSION, 
+                        namespace=self.namespace,
+                        plural = WorkflowCRD.PLURAL, 
+                        name = workflow_id,
+                        async_req=True
+                        )
+                    status_code = status.get()['metadata']['labels']['workflows.argoproj.io/phase']
+                    # print(status_code)
+                    if status_code in ['Pending', 'Running']:
+                        pass
+                    elif status_code == 'Failed':
+                        std.error('Workflow: {} running failed'.format(workflow_id))
+                        exit_status = 1
+                        break
+                    elif status_code == 'Succeeded':
+                        std.info('Workflow: {} running success'.format(workflow_id))
+                        exit_status = 0
+                        break
+                    else:
+                        std.error('Workflow: {} unknown status, {}'.format(workflow_id, status_code))
+                        exit_status = 2
+                        break
+                    time.sleep(interval)
+                sys.exit(exit_status)
+            else:
+                status = self.submitter._custom_object_api_client.get_namespaced_custom_object(
+                            group=WorkflowCRD.GROUP, 
+                        version=WorkflowCRD.VERSION, 
+                        namespace=self.namespace,
+                        plural = WorkflowCRD.PLURAL, 
+                        name = workflow_id
+                        )
+                    # self.submitter._custom_object_api_client.get_namespaced_custom_object_status(
+                    # #couler.k8s_client.CustomObjectsApi().get_namespaced_custom_object_status(
+                    #     group=WorkflowCRD.GROUP, 
+                    #     version=WorkflowCRD.VERSION, 
+                    #     namespace=self.namespace,
+                    #     plural = WorkflowCRD.PLURAL, 
+                    #     name = workflow_id
+                    # )
+                print(status.get())
+

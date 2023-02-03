@@ -1,4 +1,4 @@
-# Standard template pipeline generater(STPG) 
+# Standard Pipeline Generation Technology(SPGT,标准流水线模板生成技术) 
 
 ## STPG 简介
 STPG 是一个基于模板预定义的方式生成特定分析流程的自动化工具，基于makefile、yaml等技术进行实现，主要表现为一种新的流程设计思路，详细信息请[阅读扩展链接](https://zhuanlan.zhihu.com/p/449187702) 。  

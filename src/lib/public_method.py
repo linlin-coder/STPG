@@ -235,15 +235,19 @@ def ReadConfig(file_list):
                     if len(tmp) < 2 :
                         sys.stderr.write("Error:{0} is lack of value".format(line.rstrip()))
                         sys.exit(1)
-                    else:
+                    elif len(tmp) == 2:
                         para[tmp[0]] = tmp[1]
+                    else:
+                        para[tmp[0]] = [tmp[0]]
                 if header == 'DB':
                     tmp = [i.strip() for i in line.rstrip().split('=',1) ] 
                     if len(tmp) < 2 :
                         sys.stderr.write("Error:{0} is lack of value".format(line.rstrip()))
                         sys.exit(1)
-                    else:
+                    elif len(tmp) == 2:
                         db[tmp[0]] = tmp[1]
+                    else:
+                        db[tmp[0]] = tmp[0]
                 else:
                     tmp =  [i.strip() for i in re.split('[=\t]',line) ]#line.rstrip().split('=',1) ]#line.rstrip().split('\t')
                     record[header].append(tmp)

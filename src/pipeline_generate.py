@@ -21,11 +21,9 @@ from Workflow import (
 )
 
 globalpara = GlobalPara()
-
-'''
-1. �ó�����config.ini ��job.template��job.listΪ�������ɷ�������
-'''
-
+"""
+base method to create pipeline model
+"""
 
 def active_tool(actOBJ):
     regist_state = actOBJ.regist()

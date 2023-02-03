@@ -26,7 +26,7 @@ default:
     Queue: "test.q"
     Shell_dir: "{OUTDIR}/shell"
     CPU: 1
-    Memory: "1G"
+    Memory: "100M"
     Image: "ubuntu:22.10"
     Mount: 
         - "/share/public/:/share/public/:ro"
@@ -36,8 +36,10 @@ pipeline:
     QC:
         merge_data:
             Part:
-                - "sample"
-                - "sample2"
+                - sample
+                - sample2
+            SecondPart:
+                - chromosome
             Queue: "test.q"
             Image: "python:alpine3.6"
             Depend:
@@ -55,10 +57,24 @@ pipeline:
 
         qc:
             Depend:
-                - "merge_data_{Part[0]}"
+                - merge_data_{Part[0]}_{SecondPart[0]}
             Part:
-                - "sample"
-                - "sample2"
+                - sample
+                - sample2
+            SecondPart:
+                - chromosome
+            Command:
+                - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}_{SecondPart[0]}.Output.A1>"
+                - "echo {BIN} {job.JName} {job.CPU} {job.Memory}"
+            Output:
+                QCP: "{OUTDIR}/{MainModule}/{ChildModule}/{Part[0]}_QCP.txt"
+
+        qc_repeat:
+            Depend:
+                - merge_data_{Part[0]}
+            Part:
+                - sample
+                - sample2
             Command:
                 - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}.Output.A1>"
                 - "echo {BIN} {job.JName} {job.CPU} {job.Memory}"
@@ -68,5 +84,6 @@ pipeline:
         qc_summary:
             Depend:
                 - "qc"
+                - "qc_repeat"
                 - "merge_data"
             Command: "{resource.software.make} -f {BIN}/Modules/QC.mk  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} scriptdir={OUTDIR} qc_summary File2=<qc.Output.QCP> File3=<merge_data.Output.A1>"

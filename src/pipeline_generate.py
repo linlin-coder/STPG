@@ -67,7 +67,6 @@ def main():
     args = parser.parse_args()
     #parameter deal
     makedir(args.outdir)
-
     outdir = obtain_file_realpath(args.outdir)
     pipe_bindir = obtain_file_realpath(args.bindir)
 

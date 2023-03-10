@@ -8,7 +8,7 @@
 '''
 import os
 import time
-import pyaml
+import yaml
 from collections import OrderedDict
 import couler.argo as couler
 from couler.argo_submitter import ArgoSubmitter
@@ -192,7 +192,7 @@ class ArgoCouler(Parser_Job):
 
         self.outyaml = os.path.join(self.outdir,f'workflow-{self.project}.yaml')
         with open(self.outyaml, 'w') as f_yaml:
-            f_yaml.write(pyaml.dump(couler.workflow_yaml(), string_val_style="plain"))
+            f_yaml.writ(yaml.dump(couler.workflow_yaml(), string_val_style="plain"))
 
         if is_run:
             workflow_run_json = couler.run(submitter=self.submitter)

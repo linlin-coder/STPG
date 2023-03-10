@@ -49,6 +49,7 @@ class BaseAttribute:
         self.CPU: int = 1
         self.Memory: str = ''
         self.Depend: List[str] = []
+        self.Command: List[str] = []
         self.QC: List[str] = []
         self.Output: object = object
         self.Input: List[str] = []
@@ -57,7 +58,7 @@ class BaseAttribute:
         self.Image: str = ''
         self.JName: str = ''
         self.Shell_dir: str = ''
-        self.Status: str = ''
+        self.Status: str = 'waiting'
         self.Description: str = ''
         self.Part: List[str] = []
         self.SecondPart: List[str] = []
@@ -122,20 +123,26 @@ class JOB_attribute(BaseAttribute):
         globalpara.define_sign()
         tt = []
         tt.append('echo ==========start at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
-        # print(self.Command)
-        temp_sub_str = random_strings(8)
+        temp_sub_str1 = random_strings(8)
+        temp_sub_str2 = random_strings(9)
         for i in self.Command:
-            temp_i = i.replace('\\n',temp_sub_str)
-            for real_one_cmd in temp_i.split("\n"):
-                one_cmd = real_one_cmd.replace(temp_sub_str,'\\n')
-                mm = self.format_string(one_cmd)
-                if " ".join(mm).isspace() or " ".join(mm) == "":continue
-                tt.append(" ".join(mm))
+            i = i.replace('\\\n',temp_sub_str2).replace('\\n',temp_sub_str1)
+            annotation_code_line_jurge = i.lstrip(" ").lstrip("\t")
+            if annotation_code_line_jurge.startswith("#") and len(annotation_code_line_jurge.split('\n')) < 2:
+                continue
+            for temp_i in i.split(sep=sep):
+                for real_one_cmd in temp_i.split("\n"):
+                    annotation_code_line_jurge = real_one_cmd.lstrip(" ").lstrip("\t")
+                    if annotation_code_line_jurge.startswith("#"):
+                        continue
+                    one_cmd = real_one_cmd
+                    mm = self.format_string(one_cmd)
+                    if " ".join(mm).isspace() or " ".join(mm) == "":continue
+                    tt.append(' '.join(mm).replace(temp_sub_str1,'\\n').replace(temp_sub_str2,'\\\n'))
         tt.append('echo ==========end at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
         tt.append('echo {} 1>&2'.format(globalpara.global_sign))
         tt.append('echo {0} >{1}.{0}'.format(globalpara.global_sign, os.path.join(self.Shell_dir, '{0}-{1}.sh'.format(self.Module, self.Name))))
         output = f" {sep}".join(tt) + '\n'
-        # print(tt)
         return [len(tt), output]
 
     def format_string(self, string):
@@ -151,7 +158,7 @@ class JOB_attribute(BaseAttribute):
             mm.append(j)
         return mm
 
-    def format_para(self, para, **keyword):
+    def format_para(self, para, init=False, **keyword):
         for key in self.key_list:
             if key in ['Command','Part', 'SecondPart','Mount']: continue
             # if not getattr(self,key,None):continue
@@ -173,7 +180,11 @@ class JOB_attribute(BaseAttribute):
                 value = getattr(self, key, None)
                 if value:
                     format_value = ' '.join(self.format_string(value))
-                    setattr(self, key, format_value.format(**para))
+                    if key in ['Shell_dir'] :
+                        if init:continue 
+                        setattr(self, key, format_value.format(**para, **keyword))
+                    else:
+                        setattr(self, key, format_value.format(**para))
 
     def format_Part(self, one_part, second_part=[], outdir=""):
         for key in self.key_list:
@@ -185,7 +196,7 @@ class JOB_attribute(BaseAttribute):
                     cmd = eval(eval_cmd)
                     format_line_list.append(cmd)
                 setattr(self, key, format_line_list)
-            elif key in ['Output',]:
+            elif key in ['Output']:
                 value = getattr(self, key, None)
                 members = [attr for attr in dir(value) if not callable(getattr(value, attr)) and not attr.startswith("__")]
                 for member in members:
@@ -263,7 +274,7 @@ class Parser_Job():
                 for key, value in pipeline[module][job].items():
                     back_add_status = module_one_job.addAtribute(key, value)
                     if not back_add_status:error_keys_list.append(key)
-                module_one_job.format_para(self.para)
+                module_one_job.format_para(self.para, init=True)
                 if getattr(module_one_job,'Name','') == "":module_one_job.Name = self.replace_jobname(job)
                 self.pipeline_jobs[self.replace_jobname(module)][self.replace_jobname(job)] = module_one_job
         modules = list(self.pipeline_jobs.keys())
@@ -322,7 +333,10 @@ class Parser_Job():
                     self.relyon_status_mark(modules, one_a_job)
                     self.pipeline_jobs_name[modules][a_job_name][one_a_job.Name] = index
         del self.jobs_dict
-        self.pipelineGraph.dfs() # define task and prefix relative
+        try:
+            self.pipelineGraph.dfs() # define task and prefix relative
+        except RecursionError as e:
+            std.error(f"Please check whether there is a duplicate module name in the pipeline, or there is a circular dependency between jobs. The specific error message is:{e}")
 
     def define_jobs_pub(self,a_job):
         """
@@ -366,12 +380,14 @@ class Parser_Job():
         new_cmd_str, new_cmd_list = '', ['set -e', 'set -o']
         cmd_list = cmd_str.split(' {sep}'.format(sep=self.separate))
         for cmd in cmd_list:
-            # print("cmd:",cmd)
             if pat5.search(cmd) or pat7.search(cmd.split(" ")[0]):
-                tmp_list = os.popen(cmd + ' -n').readlines()
-                tmp_list[-1] = tmp_list[-1].rstrip()
-                tmp_str = "".join(tmp_list)
-                new_cmd_list.append(tmp_str)
+                try:
+                    tmp_list = os.popen(cmd + ' -n').readlines()
+                    tmp_list[-1] = tmp_list[-1].rstrip()
+                    tmp_str = "".join(tmp_list)
+                    new_cmd_list.append(tmp_str)
+                except IndexError as e:
+                    std.error(f"IndexError:{e} list index out of range:{cmd}")
             else:
                 new_cmd_list.append(cmd)
         new_cmd_str += ' {sep}'.format(sep=self.separate).join(new_cmd_list)
@@ -391,23 +407,25 @@ class Parser_Job():
         for modules in self.modules_list:
             for count, a_job_name in enumerate(list(self.pipeline_jobs[modules])):
                 a_job = self.pipeline_jobs[modules][a_job_name]
-                a_job.Shell_dir = os.path.join(self.outdir, modules, a_job_name)
+                a_job.Shell_dir = os.path.join(self.outdir, modules, a_job_name) if a_job.Shell_dir == '' else a_job.Shell_dir
 
                 if a_job.Part == []:
                     a_job.Module = modules
                     a_job.JName = a_job_name
-                    evaled_cmd = a_job.format_command(sep=self.separate)[1].format(
+                    a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, job=a_job)
+                    a_job.format_Part('', outdir=self.outdir)
+                    try:
+                        evaled_cmd = a_job.format_command(sep=self.separate)[1].format(
                                                                   OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                   MainModule=a_job.Module, ChildModule=a_job_name,
                                                                   job=a_job, resource=self.globalMSG,
                                                                   para=para ,db=db)
-
+                    except Exception as e:
+                        std.error(f"cmd_template:{a_job.__dict__},error info:{e}")
                     evaled_cmd = self.jobobject_overloading2(evaled_cmd, a_job)
                     cmd = self.resolution_makefile_unfold(evaled_cmd)
 
                     a_job.Command = [cmd]
-                    a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name)
-                    a_job.format_Part('', outdir=self.outdir)
                     self.pipeline_jobs[modules][a_job_name] = [a_job]
                     self.jobs_dict[a_job.Name] = a_job
                 else:
@@ -421,57 +439,64 @@ class Parser_Job():
                                 secondpart = []#[x for x in config[i]]
                                 for i in a_job.SecondPart:
                                     secondpart.extend(config[i])
-                                if len(secondpart) == 0:pass
+                                if len(secondpart) == 0:continue
                                 for one_secondpart in sorted(secondpart):
                                     tmp_a_job = copy.deepcopy(a_job)
+                                    if self.connector == '_':
+                                        value[0]     	  = str(value[0]).replace("-", self.connector)
+                                        one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
+                                    elif self.connector == '-':
+                                        value[0]     	  = str(value[0]).replace("_", self.connector)
+                                        one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
+
                                     tmp_a_job.Module = modules
                                     tmp_a_job.JName = a_job_name                            
                                     tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(value[0]), str(one_secondpart[0])])
-
-                                    evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value , db=db, SecondPart=one_secondpart,
+                                    tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job)
+                                    tmp_a_job.format_Part(value, second_part=one_secondpart, outdir=self.outdir)
+                                    try:
+                                        evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value , db=db, SecondPart=one_secondpart,
                                                                                     OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                                     MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
                                                                                     resource=self.globalMSG)
+                                    except Exception as e:
+                                        std.error(f"cmd_template:{tmp_a_job.__dict__},error info:{e}")
 
-                                    if self.connector == '_':
-                                        value[0]     = str(value[0]).replace("-", self.connector)
-                                        second_value = str(one_secondpart[0]).replace("-", self.connector)
-                                    elif self.connector == '-':
-                                        value[0]     = str(value[0]).replace("_", self.connector)
-                                        second_value = str(one_secondpart[0]).replace("_", self.connector)
 
                                     evaled_cmd = self.jobobject_overloading2(evaled_cmd, tmp_a_job)
                                     cmd = self.resolution_makefile_unfold(evaled_cmd)
 
                                     tmp_a_job.Command = [cmd]
-                                    tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart)
-                                    tmp_a_job.format_Part(value, second_part=second_value, outdir=self.outdir)
-                                    if index == 0:
-                                        self.pipeline_jobs[modules][a_job_name] = []
 
+                                    if isinstance(self.pipeline_jobs[modules][a_job_name], JOB_attribute):
+                                        self.pipeline_jobs[modules][a_job_name] = []
                                     self.pipeline_jobs[modules][a_job_name].append(tmp_a_job)
                                     self.jobs_dict[tmp_a_job.Name] = tmp_a_job
                             else:
                                 tmp_a_job = copy.deepcopy(a_job)
-                                tmp_a_job.Module = modules
-                                tmp_a_job.JName = a_job_name                            
-                                tmp_a_job.Name += self.connector + str(value[0])
 
-                                evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value ,db=db,
-                                                                                OUTDIR=self.outdir, BIN=self.pipe_bindir,
-                                                                                MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
-                                                                                resource=self.globalMSG)
-
-                                evaled_cmd = self.jobobject_overloading2(evaled_cmd, tmp_a_job)
-                                cmd = self.resolution_makefile_unfold(evaled_cmd)
                                 if self.connector == '_':
                                     value[0] = str(value[0]).replace("-", self.connector)
                                 elif self.connector == '-':
                                     value[0] = str(value[0]).replace("_", self.connector)
+                                    
+                                tmp_a_job.Module = modules
+                                tmp_a_job.JName = a_job_name                            
+                                tmp_a_job.Name += self.connector + str(value[0])
+                                tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job)
+                                tmp_a_job.format_Part(value, outdir=self.outdir)
+                                try:
+                                    evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value ,db=db,
+                                                                                OUTDIR=self.outdir, BIN=self.pipe_bindir,
+                                                                                MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
+                                                                                resource=self.globalMSG)
+                                except Exception as e:
+                                        std.error(f"cmd_template:{tmp_a_job.__dict__},error info:{e}")
+
+                                evaled_cmd = self.jobobject_overloading2(evaled_cmd, tmp_a_job)
+                                cmd = self.resolution_makefile_unfold(evaled_cmd)
 
                                 tmp_a_job.Command = [cmd]
-                                tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value)
-                                tmp_a_job.format_Part(value, outdir=self.outdir)
                                 if index == 0:
                                     self.pipeline_jobs[modules][a_job_name] = []
 
@@ -487,7 +512,7 @@ class Parser_Job():
         unoverloading_cmd_list = unoverloading_cmd.split(' {sep}'.format(sep=self.separate))
         for one_unoverloading_cmd in unoverloading_cmd_list:
             mm = []
-            for com_sub_index, j in enumerate(one_unoverloading_cmd.split()):
+            for _, j in enumerate(one_unoverloading_cmd.split(sep=" ")):
                 if pat6.search(j):
                     one_loading_obj = pat6.search(j).group(1).split(".")[0]
                     j = pat6.sub(r"{\1}", j)
@@ -519,23 +544,25 @@ class Parser_Job():
                                 for secondvalue in one_secondvalues:
                                     secondvalueFirstElement = self.replace_jobname(secondvalue[0])
                                     defindedOneJob = one_loading_obj + self.connector + secondvalueFirstElement
-                                    # print(defindedOneJob)
                                     if defindedOneJob in self.jobs_dict:
-                                        # print(j, one_loading_obj, secondvalue)
                                         j_tmp = j.replace(one_loading_obj.replace('-',"_"), defindedOneJob.replace('-',"_"))
-                                        # print(j_tmp,self.jobs_dict[defindedOneJob],"j_tmp.format({one_loading_obj}=self.jobs_dict[defindedOneJob])".format(one_loading_obj=defindedOneJob.replace('-',"_")))
-                                        j_tmp = eval("j_tmp.format({one_loading_obj}=self.jobs_dict[defindedOneJob])".format(one_loading_obj=defindedOneJob.replace('-',"_")))
+                                        j_tmp = eval("j_tmp.format({one_loading_obj}=self.jobs_dict[defindedOneJob])".format(
+                                            one_loading_obj=defindedOneJob.replace('-',"_"))
+                                            )
                                         j_multiple_list.append(j_tmp.strip().split("=")[-1])
                             a_job.Input.extend(j_multiple_list)
                             j += ",".join(j_multiple_list)
                         else:
-                            j = eval("j.format({one_loading_obj_new}=self.jobs_dict[one_loading_obj])".format(
-                                one_loading_obj_new=one_loading_obj.replace('-',"_")))
-                            a_job.Input.append(j)
+                            try:
+                                j = eval("j.format({one_loading_obj_new}=self.jobs_dict[one_loading_obj])".format(
+                                    one_loading_obj_new=one_loading_obj.replace('-',"_")))
+                                a_job.Input.append(j)
+                            except KeyError as e:
+                                std.error(f"{one_loading_obj}:{e} not in pipeline graph,this command line is:{j}:{one_unoverloading_cmd}")
                 mm.append(j)
             unoverloaded_cmd = " ".join(mm)
             unoverloaded_cmd_list.append(unoverloaded_cmd)
-        unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)
+        unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
         return unoverloaded_cmd_str
 
     def write_Command_to_file(self):
@@ -651,4 +678,6 @@ class Parser_Job():
     
     def write_jobs_to_DAG(self):
         pass
+
+
 

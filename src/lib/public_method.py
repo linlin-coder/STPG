@@ -218,7 +218,7 @@ def ReadConfig(file_list):
             f_file = f_config.readlines()
         for line in f_file:
             line=line.strip()
-            if line.startswith('#') or not line:continue
+            if line.startswith('#') or not line or line.startswith(";"):continue
             elif line.startswith('['):
                 match = pat.search(line)
                 if match :

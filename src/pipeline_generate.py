@@ -11,6 +11,7 @@ bin_tool = os.path.realpath(os.path.dirname(__file__))
 sys.path.append(os.path.join(bin_tool,'lib'))
 from lib.authority import Authorize, AuthorCode
 from lib.QC_Result import *
+from lib.multi_yaml_merge import merge_multi_yaml
 
 std = Log(os.path.basename(__file__))
 
@@ -33,7 +34,7 @@ def active_tool(actOBJ):
 def main():
 
     ##################Permission verification##############
-    author_handle = Authorize(toolbin=bin_tool + '/../')
+    '''author_handle = Authorize(toolbin=bin_tool + '/../')
     CheckStatus, residueday = author_handle.checkAuthored()
     if CheckStatus == AuthorCode.Author_right:
         pass
@@ -46,7 +47,7 @@ def main():
     elif CheckStatus == AuthorCode.Author_NoneRegist:
         std.warning("No active file")
         active_tool(author_handle)
-    if int(residueday) <= 100 :print("residueday:", residueday, "days")
+    if int(residueday) <= 100 :print("residueday:", residueday, "days")'''
     ###########################################################
 
     parser = argparse.ArgumentParser(description='', formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -56,7 +57,7 @@ def main():
     parser.add_argument('-c', '--config', help='project config',dest='config', required=True,nargs="+")
     parser.add_argument('-pro', '--project', help='analysis project id', dest='project',default='Test')
     parser.add_argument('-p', '--point', help='startpoint', dest='point',nargs="+")
-    parser.add_argument('-t', '--template', help='template file', dest='template',required=True)
+    parser.add_argument('-t', '--template', help='template file', dest='template',required=True,nargs='+')
     parser.add_argument('-l', '--list', help='job list file', dest='joblist')
     parser.add_argument('-m', '--method', help='run job method using SJM', dest='method',default='singularity',
                         choices=list(method2class.keys()))
@@ -71,20 +72,26 @@ def main():
     pipe_bindir = obtain_file_realpath(args.bindir)
 
     ## tool config read
-    GlobalPara.configfile = args.template
+    if len(args.template) == 1:
+        merged_pipeline_yaml = args.template[0]
+        GlobalPara.configfile = args.template[0]
+    else:
+        merged_pipeline_yaml = os.path.join(outdir, 'pipeline.yaml')
+        _ = merge_multi_yaml(args.template, merged_pipeline_yaml)
+        GlobalPara.configfile = merged_pipeline_yaml
     ## parser project-config-ini
     project_config, project_para, project_db, project_orders = ReadConfig(args.config)
     if 'BIN' not in project_para:
         project_para['BIN'] = pipe_bindir
         project_para['OUTDIR'] = outdir
-    ReadJob = method2class[args.method](job_file=args.template, parameter=project_para,
+    ReadJob = method2class[args.method](job_file=merged_pipeline_yaml, parameter=project_para,
                                         outdir=outdir, pipe_bindir=pipe_bindir,
                                         sjm_method=args.method, project=args.project)
 
-    ReadJob.config_element_iteration(project_config, project_para, project_db)
     if args.joblist:
         need_run_modules = ReadJob.obtain_jobset_list(args.joblist)
         ReadJob.clean_pipeline_task(need_run_modules)
+    ReadJob.config_element_iteration(project_config, project_para, project_db)
     ReadJob.define_jobs_order()
     if args.point:
         startpoints = [str(x) for x in args.point]

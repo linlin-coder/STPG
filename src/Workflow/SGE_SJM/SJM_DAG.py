@@ -40,7 +40,7 @@ class Deliver_DAG_Job():
             else:
                 self.std.error("Please specify the path of container engine docker or singularity in software sector!!!")
         else:
-            self.normal_qsub(self.software, self.mount_list, Image)
+            self.normal_qsub(Image)
 
 
     def docker_qsub(self, Image):
@@ -167,3 +167,4 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
                 # while 1:
                 #     pass
                 pass
+

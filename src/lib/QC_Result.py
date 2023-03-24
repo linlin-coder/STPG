@@ -1,8 +1,9 @@
-import os,sys,re
 import glob
+
+from pytablewriter import HtmlTableWriter
+
 from public_method import *
 
-from pytablewriter import MarkdownTableWriter,LatexTableWriter,HtmlTableWriter
 # import markdown
 
 patc = re.compile('^column\d+')

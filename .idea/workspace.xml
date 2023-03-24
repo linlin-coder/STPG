@@ -2,35 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7543a4fe-c40e-4e98-948e-a08840c18f7e" name="Default Changelist" comment="branch wdl init and think something">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/WDL_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/WDL_workflow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/format_cmd.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/format_cmd.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/common/struct.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/common/struct.wdl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/config.json" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/input.json" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/input.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/local_beckend.conf" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/local_beckend.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/pipeline.workflow.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/pipeline.workflow.wdl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/Cromwell/template/subtask.wdl" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/Cromwell/template/subtask.wdl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/classification_define.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/Define_pipeline/classification_define.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/argo_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/argo_workflow.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/job_default.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/job_default.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/FINISH-STEP_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/FINISH-STEP_YamlTemplate.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Job_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Job_YamlTemplate.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Pipeline_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Pipeline_YamlTemplate.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/VolumeMounts_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/VolumeMounts_YamlTemplate.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/K8S_argo/template/Volume_YamlTemplate.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/K8S_argo/template/Volume_YamlTemplate.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/SGE_SJM/SJM_DAG.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/SGE_SJM/SJM_DAG.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/SGE_SJM/template/template.job" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/SGE_SJM/template/template.job" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Workflow/version.py" beforeDir="false" afterPath="$PROJECT_DIR$/Workflow/version.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/not_use_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/not_use_function.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/tree_dict_display.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/tree_dict_display.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template/Modules/QC.mk" beforeDir="false" afterPath="$PROJECT_DIR$/template/Modules/QC.mk" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template/config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/template/config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template/job.list" beforeDir="false" afterPath="$PROJECT_DIR$/template/job.list" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template/job.template" beforeDir="false" afterPath="$PROJECT_DIR$/template/job.template" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template/template.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/template/template.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/DesignMode.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/STPG_public.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/STPG_public.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/BaseParserJob/baseworkflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/BaseParserJob/baseworkflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/Cromwell/WDL_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/Cromwell/WDL_workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/K8S_Argo_couler/argo_couler_workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/K8S_Argo_couler/argo_couler_workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/K8s_Argo_Hera/argo_hera_dag.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/K8s_Argo_Hera/argo_hera_dag.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/SGE_SJM/SJM_DAG.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/SGE_SJM/SJM_DAG.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Workflow/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Workflow/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/QC_Result.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/QC_Result.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/authority.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/authority.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/get_dict_target.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/get_dict_target.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/multi_yaml_merge.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/multi_yaml_merge.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/not_use_function.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/not_use_function.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/public_method.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/public_method.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pipeline_generate.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pipeline_generate.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +35,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="develop" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitSEFilterConfiguration">
@@ -54,9 +49,6 @@
       <filtered-out-file-type name="TAG" />
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
-  </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/pipeline_generate.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="1zquODnpa0YiNInuMuj9qjGgGa8" />
   <component name="ProjectLevelVcsManager">
@@ -111,6 +103,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.tree_dict_display" />
+        <item itemvalue="Python.tree_dict_display" />
+        <item itemvalue="Python.tree_dict_display" />
       </list>
     </recent_temporary>
   </component>
@@ -148,6 +142,7 @@
       <workItem from="1641517960510" duration="75000" />
       <workItem from="1641518038029" duration="17000" />
       <workItem from="1643353780056" duration="460000" />
+      <workItem from="1679621188054" duration="7114000" />
     </task>
     <task id="LOCAL-00001" summary="branch wdl init and think something">
       <created>1636452119877</created>
@@ -180,7 +175,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="HEAD" />
+                        <option value="efficiency_optimization" />
                       </list>
                     </value>
                   </entry>

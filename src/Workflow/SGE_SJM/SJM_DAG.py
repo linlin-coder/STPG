@@ -1,6 +1,6 @@
-from lib.public_method import *
 from Workflow.BaseParserJob.baseworkflow import Parser_Job
-from Workflow.version import tool_bin as bin_tool
+from lib.public_method import *
+
 
 class Deliver_DAG_Job():
     def __init__(self,job_file, parameter, outdir, pipe_bindir, sjm_method):

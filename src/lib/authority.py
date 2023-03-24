@@ -1,9 +1,12 @@
-import uuid
 import base64
-import datetime,time
+import datetime
+import time
+import uuid
 # import win32api
 from enum import Enum
+
 from pyDes import *
+
 
 def unix_time():
     dtime = datetime.datetime.now()

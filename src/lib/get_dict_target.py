@@ -5,8 +5,10 @@
 @file: get_target_value.py
 @time: 2017/12/22
 """
+import os
+import sys
+
 import public_method
-import sys,os
 
 sys.path.append(os.path.dirname(__file__)+'/../')
 import lib 

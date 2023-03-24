@@ -8,17 +8,17 @@
 '''
 import os
 import time
-import yaml
 from collections import OrderedDict
+
 import couler.argo as couler
+import yaml
+from Workflow.BaseParserJob.baseworkflow import Parser_Job, JOB_attribute
 from couler.argo_submitter import ArgoSubmitter
-from couler.core.constants import CronWorkflowCRD, WorkflowCRD
+from couler.core.constants import WorkflowCRD
 from couler.core.templates import (
     volume
 )
-
 from lib.public_method import *
-from Workflow.BaseParserJob.baseworkflow import Parser_Job, JOB_attribute
 
 couler.states.workflow.service_account = 'argo'
 

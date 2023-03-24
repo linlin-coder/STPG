@@ -3,19 +3,17 @@
 
 import argparse
 import copy
-import os,re
+import os
 import sys
-import markdown
 
 bin_tool = os.path.realpath(os.path.dirname(__file__))
 sys.path.append(os.path.join(bin_tool,'lib'))
-from lib.authority import Authorize, AuthorCode
 from lib.QC_Result import *
 from lib.multi_yaml_merge import merge_multi_yaml
 
 std = Log(os.path.basename(__file__))
 
-from Workflow.version import __author__, __date__, __mail__, tool_bin
+from Workflow.version import __author__, __date__, __mail__
 from Workflow import (
     GlobalPara, 
     method2class
@@ -31,6 +29,7 @@ def active_tool(actOBJ):
     if not regist_state:
         std.fatal("Activation failed!!!")
 
+@std.logAsDecorator
 def main():
 
     ##################Permission verification##############

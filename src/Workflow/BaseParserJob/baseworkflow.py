@@ -16,7 +16,7 @@ from lib.public_method import *
 from lib.graph import DFSGraph as Graph
 from lib.tree_dict_display import print_tree
 from lib.QC_Result import *
-from Workflow.version import __author__, __date__, __mail__, tool_bin
+
 # from Workflow import GlobalPara
 
 pat1 = re.compile('^\s+$')
@@ -27,6 +27,9 @@ pat4 = re.compile('(DB_[A-Za-z0-9_-]+)\\\\?')
 pat5 = re.compile('\S*make\s+')
 pat6 = re.compile('\<(\S+?)\>')  # marking output attribute
 pat7 = re.compile('/\S+make$')
+
+temp_sub_str1 = random_strings(8)
+temp_sub_str2 = random_strings(9)
 
 std = Log(os.path.basename(__file__))
 
@@ -40,7 +43,8 @@ class GlobalPara:
     def define_sign(self,):
         yamldict = read_yaml(self.configfile)["resource"]
         self.global_sign=yamldict['sign']['finish_sign']
-globalpara = GlobalPara()
+# globalpara = GlobalPara()
+# globalpara.define_sign()
 
 class BaseAttribute:
     def __init__(self) -> None:
@@ -73,24 +77,6 @@ class TestBaseAttribute(BaseAttribute):
 
 class JOB_attribute(BaseAttribute):
     def __init__(self):
-        # self.Name = ''
-        # self.Queue = ''
-        # self.CPU = 1
-        # self.Memory = "1G"
-        # self.Depend = []
-        # self.Command = []
-        # self.QC = []
-        # self.Output = object
-        # self.Input  = []
-        # self.Env = ""
-        # self.Mount = []
-        # self.Image = ""
-        # self.JName = ''
-        # self.Shell_dir = ""
-        # self.Status = "waiting"  # ['waiting', 'done', 'failed']
-        # self.Description = ''
-        # self.Part = []
-        # self.Module = ''
         self.key_list = ['Name', 'Env', 'Image', 'Command',
                 'Description', 'Part', 'SecondPart', 'QC', 'Mount',
                 'Depend', 'Queue', "Status", "Shell_dir",
@@ -118,13 +104,11 @@ class JOB_attribute(BaseAttribute):
         else:
             return False
 
-    def format_command(self,sep):
-        output = ''
-        globalpara.define_sign()
+    def format_command(self,sep, global_sign:str = 'finished'):
+        # output = ''
+        # globalpara.define_sign()
         tt = []
         tt.append('echo ==========start at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
-        temp_sub_str1 = random_strings(8)
-        temp_sub_str2 = random_strings(9)
         for i in self.Command:
             i = i.replace('\\\n',temp_sub_str2).replace('\\n',temp_sub_str1)
             annotation_code_line_jurge = i.lstrip(" ").lstrip("\t")
@@ -140,8 +124,8 @@ class JOB_attribute(BaseAttribute):
                     if " ".join(mm).isspace() or " ".join(mm) == "":continue
                     tt.append(' '.join(mm).replace(temp_sub_str1,'\\n').replace(temp_sub_str2,'\\\n'))
         tt.append('echo ==========end at : `date +"%Y-%m-%d %H:%M:%S"` ==========')
-        tt.append('echo {} 1>&2'.format(globalpara.global_sign))
-        tt.append('echo {0} >{1}.{0}'.format(globalpara.global_sign, os.path.join(self.Shell_dir, '{0}-{1}.sh'.format(self.Module, self.Name))))
+        tt.append('echo {} 1>&2'.format(global_sign))
+        tt.append('echo {0} >{1}.{0}'.format(global_sign, os.path.join(self.Shell_dir, '{0}-{1}.sh'.format(self.Module, self.Name))))
         output = f" {sep}".join(tt) + '\n'
         return [len(tt), output]
 
@@ -158,6 +142,7 @@ class JOB_attribute(BaseAttribute):
             mm.append(j)
         return mm
 
+    # @std.logAsDecorator
     def format_para(self, para, init=False, **keyword):
         for key in self.key_list:
             if key in ['Command','Part', 'SecondPart','Mount']: continue
@@ -167,6 +152,12 @@ class JOB_attribute(BaseAttribute):
                 for line in getattr(self, key, []):
                     if not line or line == [None]:continue
                     format_line = ' '.join(self.format_string(line))
+                    if key == 'QC':
+                        try:
+                            format_line = format_line.format(**para, **keyword)
+                        except Exception as e:
+                            # std.warning(e)
+                            pass
                     format_line_list.append(format_line)
                 setattr(self, key, format_line_list)
             elif key in ['Output', ]:
@@ -185,7 +176,7 @@ class JOB_attribute(BaseAttribute):
                         setattr(self, key, format_value.format(**para, **keyword))
                     else:
                         setattr(self, key, format_value.format(**para))
-
+    # @std.logAsDecorator
     def format_Part(self, one_part, second_part=[], outdir=""):
         for key in self.key_list:
             if key in ['Depend', 'Env', 'Part', 'SecondPart']:
@@ -294,6 +285,7 @@ class Parser_Job():
 
         return joblist_yaml
 
+    # @std.logAsDecorator
     def clean_pipeline_task(self,need_run_modules):
         self.STPGLog.add_a_sector("ModuleEliminated")
         MainmoduleEliminated, SubmoduleEliminated = '', ''
@@ -315,12 +307,14 @@ class Parser_Job():
         self.STPGLog.add_a_value("ModuleEliminated", "MainmoduleEliminated", MainmoduleEliminated.strip(","))
         self.STPGLog.add_a_value("ModuleEliminated", "SubmoduleEliminated", SubmoduleEliminated.strip(","))
 
+    # @std.logAsDecorator
     def relyon_status_mark(self, module, one_job):
-        globalpara.define_sign()
-        markfile = os.path.join(one_job.Shell_dir, '{0}-{1}.sh.{2}'.format(module, one_job.Name, globalpara.global_sign))
+        # globalpara.define_sign()
+        markfile = os.path.join(one_job.Shell_dir, '{0}-{1}.sh.{2}'.format(module, one_job.Name, self.globalMSG.sign.finish_sign))
         if os.path.exists(markfile):
             one_job.Status = "done"
 
+    # @std.logAsDecorator
     def define_jobs_order(self,):
         self.pipeline_jobs_name = multidict()
         for modules in self.modules_list:
@@ -338,6 +332,7 @@ class Parser_Job():
         except RecursionError as e:
             std.error(f"Please check whether there is a duplicate module name in the pipeline, or there is a circular dependency between jobs. The specific error message is:{e}")
 
+    # @std.logAsDecorator
     def define_jobs_pub(self,a_job):
         """
         将单个job的依赖从字典视角转换成图视角
@@ -376,6 +371,7 @@ class Parser_Job():
                     std.warning("remove task:{0} depend module/task:{1}".format(a_job.Name,one_thisjob_depend))
                     a_job.Depend.remove(one_thisjob_depend.replace('-', '_'))
 
+    # @std.logAsDecorator
     def resolution_makefile_unfold(self, cmd_str):
         new_cmd_str, new_cmd_list = '', ['set -e', 'set -o']
         cmd_list = cmd_str.split(' {sep}'.format(sep=self.separate))
@@ -402,6 +398,7 @@ class Parser_Job():
             a_job_name = a_job_name
         return a_job_name
 
+    # @std.logAsDecorator
     def config_element_iteration(self, config, para, db):
         self.project_config = config
         for modules in self.modules_list:
@@ -415,7 +412,7 @@ class Parser_Job():
                     a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, job=a_job)
                     a_job.format_Part('', outdir=self.outdir)
                     try:
-                        evaled_cmd = a_job.format_command(sep=self.separate)[1].format(
+                        evaled_cmd = a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(
                                                                   OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                   MainModule=a_job.Module, ChildModule=a_job_name,
                                                                   job=a_job, resource=self.globalMSG,
@@ -442,20 +439,20 @@ class Parser_Job():
                                 if len(secondpart) == 0:continue
                                 for one_secondpart in sorted(secondpart):
                                     tmp_a_job = copy.deepcopy(a_job)
-                                    if self.connector == '_':
-                                        value[0]     	  = str(value[0]).replace("-", self.connector)
-                                        one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
-                                    elif self.connector == '-':
-                                        value[0]     	  = str(value[0]).replace("_", self.connector)
-                                        one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
+                                    # if self.connector == '_':
+                                    #     value[0]     	  = str(value[0]).replace("-", self.connector)
+                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
+                                    # elif self.connector == '-':
+                                    #     value[0]     	  = str(value[0]).replace("_", self.connector)
+                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
 
                                     tmp_a_job.Module = modules
                                     tmp_a_job.JName = a_job_name                            
-                                    tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(value[0]), str(one_secondpart[0])])
+                                    tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(self.replace_jobname(value[0])), str(self.replace_jobname(one_secondpart[0]))])
                                     tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job)
                                     tmp_a_job.format_Part(value, second_part=one_secondpart, outdir=self.outdir)
                                     try:
-                                        evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value , db=db, SecondPart=one_secondpart,
+                                        evaled_cmd = tmp_a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(para=para , Part=value , db=db, SecondPart=one_secondpart,
                                                                                     OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                                     MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
                                                                                     resource=self.globalMSG)
@@ -475,18 +472,18 @@ class Parser_Job():
                             else:
                                 tmp_a_job = copy.deepcopy(a_job)
 
-                                if self.connector == '_':
-                                    value[0] = str(value[0]).replace("-", self.connector)
-                                elif self.connector == '-':
-                                    value[0] = str(value[0]).replace("_", self.connector)
+                                # if self.connector == '_':
+                                #     value[0] = str(value[0]).replace("-", self.connector)
+                                # elif self.connector == '-':
+                                #     value[0] = str(value[0]).replace("_", self.connector)
                                     
                                 tmp_a_job.Module = modules
                                 tmp_a_job.JName = a_job_name                            
-                                tmp_a_job.Name += self.connector + str(value[0])
+                                tmp_a_job.Name += self.connector + str(self.replace_jobname(value[0]))
                                 tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job)
                                 tmp_a_job.format_Part(value, outdir=self.outdir)
                                 try:
-                                    evaled_cmd = tmp_a_job.format_command(sep=self.separate)[1].format(para=para , Part=value ,db=db,
+                                    evaled_cmd = tmp_a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(para=para , Part=value ,db=db,
                                                                                 OUTDIR=self.outdir, BIN=self.pipe_bindir,
                                                                                 MainModule=tmp_a_job.Module,ChildModule=a_job_name, job=tmp_a_job,
                                                                                 resource=self.globalMSG)
@@ -540,7 +537,8 @@ class Parser_Job():
                         if a_job.Part != [] and len(j.strip().split("=")) >= 2:
                             j_multiple_str = j.strip().split("=")[0] + "="
                             j_multiple_list = []
-                            for _, one_secondvalues in self.project_config.items():
+                            for itemname, one_secondvalues in self.project_config.items():
+                                if itemname in ('DB', 'Para') or itemname in a_job.Part:continue
                                 for secondvalue in one_secondvalues:
                                     secondvalueFirstElement = self.replace_jobname(secondvalue[0])
                                     defindedOneJob = one_loading_obj + self.connector + secondvalueFirstElement
@@ -609,8 +607,8 @@ class Parser_Job():
             if not taskvertext:return
             downsteam_tasklist = taskvertext.getConnections()
             for downsteam_task in downsteam_tasklist:
-                downsteam_task.Status = "waiting"
-                self.change_downstream_status([downsteam_task])
+                downsteam_task.id.Status = "waiting"
+            self.change_downstream_status([downsteam_task.id for downsteam_task in downsteam_tasklist ])
 
     def change_upstream_status(self,one_job, alreadychange=[]):
         for one_one_job in one_job:

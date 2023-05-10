@@ -1,1 +1,2 @@
-python3 $(cd "$(dirname $0)";pwd)/src/pipeline_generate.py 
+currentdir=$(cd "$(dirname $0)";pwd)
+python3 ${currentdir}/src/pipeline_generate.py $*

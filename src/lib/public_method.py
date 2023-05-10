@@ -2,48 +2,217 @@
 # -*- coding: UTF-8 -*-
 import configparser
 import datetime
-import os,shutil
-import re
+import os
+import random
+import re,time
+import shutil
+import string
 import subprocess
 import sys
-import random, string
+import colorlog
+import functools
 import yaml
+import logging
+from logging.handlers import RotatingFileHandler
+
+from DesignMode import Singleton
 
 bindir = os.path.realpath(os.path.dirname(__file__))
+# home_path = os.path.realpath('~')
+# # cur_path = os.path.dirname(os.path.realpath(__file__))  # 当前项目路径
+# log_path = os.path.join(os.path.realpath(home_path), 'log')  # log_path为存放日志的路径
+# if not os.path.exists(log_path): os.mkdir(log_path)  # 若不存在logs文件夹，则自动创建
 
-class Log():
-    def __init__(self,filename,funcname=''):
-        self.filename = filename
-        self.funcname = funcname
+log_colors_config = {
+    # 终端输出日志颜色配置
+    'DEBUG': 'white',
+    'INFO': 'cyan',
+    'WARNING': 'yellow',
+    'ERROR': 'red',
+    'CRITICAL': 'bold_red',
+}
 
-    def _format(self,level,message):
-        date_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        formatter = ''
-        if self.funcname == '':
-            formatter = '\n{0} - {1} - {2} - {3} \n'.format(date_now,self.filename,level,message)
-        else:
-            formatter = '\n{0} - {1} - {2} - {3} - {4} \n'.format(date_now,self.filename,self.funcname,level,message)
+default_formats = {
+    # 终端输出格式
+    'color_format': '%(log_color)s%(asctime)s-%(name)s-%(filename)s-[line:%(lineno)d]-%(levelname)s-[日志信息]: %(message)s',
+    # 日志输出格式
+    'log_format': '%(asctime)s-%(name)s-%(filename)s-[line:%(lineno)d]-%(levelname)s-[日志信息]: %(message)s'
+}
 
-        return formatter
 
-    def info(self, message):
-        sys.stdout.write(self._format('INFO',message=message))
+def get_now_time_str(format:str = '%Y-%m-%d %H:%M:%S') -> str:
+    return datetime.datetime.strftime(datetime.datetime.now(),format)
+
+def formatTime(seconds):
+    if seconds < 60:
+        return "{:.4f}秒".format(seconds)
+    elif seconds < 3600:
+        minutes = seconds // 60
+        seconds = seconds % 60
+        return "{}分{}秒".format(int(minutes), int(seconds))
+    else:
+        hours = seconds // 3600
+        minutes = (seconds - hours * 3600) // 60
+        seconds = seconds - hours * 3600 - minutes * 60
+        return "{}小时{}分{}秒".format(int(hours), int(minutes), int(seconds))
+
+@Singleton
+class Log:
+    """
+    先创建日志记录器（logging.getLogger），然后再设置日志级别（logger.setLevel），
+    接着再创建日志文件，也就是日志保存的地方（logging.FileHandler），然后再设置日志格式（logging.Formatter），
+    最后再将日志处理程序记录到记录器（addHandler）
+    """
+
+    def __init__(self, runpyfile:str = ''):
+        self.__now_time = get_now_time_str(format='%Y-%m')  # 当前日期格式化
+        # self.__all_log_path = os.path.join(log_path, self.__now_time + "-all" + ".log")  # 收集所有日志信息文件
+        # self.__error_log_path = os.path.join(log_path, self.__now_time + "-error" + ".log")  # 收集错误日志信息文件
+        self.__logger = logging.getLogger()  # 创建日志记录器
+        self.__logger.setLevel(logging.INFO)  # 设置默认日志记录器记录级别
+
+    @staticmethod
+    def __init_logger_handler(log_path):
+        """
+        创建日志记录器handler，用于收集日志
+        :param log_path: 日志文件路径
+        :return: 日志记录器
+        """
+        # 写入文件，如果文件超过1M大小时，切割日志文件，仅保留2个文件
+        logger_handler = RotatingFileHandler(filename=log_path, maxBytes=1 * 1024 * 1024, backupCount=2, encoding='utf-8')
+        return logger_handler
+
+    @staticmethod
+    def __init_console_handle():
+        """创建终端日志记录器handler，用于输出到控制台"""
+        console_handle = colorlog.StreamHandler()
+        return console_handle
+
+    def __set_log_handler(self, logger_handler, level=logging.DEBUG):
+        """
+        设置handler级别并添加到logger收集器
+        :param logger_handler: 日志记录器
+        :param level: 日志记录器级别
+        """
+        logger_handler.setLevel(level=level)
+        self.__logger.addHandler(logger_handler)
+
+    def __set_color_handle(self, console_handle):
+        """
+        设置handler级别并添加到终端logger收集器
+        :param console_handle: 终端日志记录器
+        :param level: 日志记录器级别
+        """
+        console_handle.setLevel(logging.DEBUG)
+        self.__logger.addHandler(console_handle)
+
+    @staticmethod
+    def __set_color_formatter(console_handle, color_config):
+        """
+        设置输出格式-控制台
+        :param console_handle: 终端日志记录器
+        :param color_config: 控制台打印颜色配置信息
+        :return:
+        """
+        formatter = colorlog.ColoredFormatter(default_formats["color_format"], log_colors=color_config)
+        console_handle.setFormatter(formatter)
+
+    @staticmethod
+    def __set_log_formatter(file_handler):
+        """
+        设置日志输出格式-日志文件
+        :param file_handler: 日志记录器
+        """
+        formatter = logging.Formatter(default_formats["log_format"], datefmt='%a, %d %b %Y %H:%M:%S')
+        file_handler.setFormatter(formatter)
+
+    @staticmethod
+    def __close_handler(file_handler):
+        """
+        关闭handler
+        :param file_handler: 日志记录器
+        """
+        file_handler.close()
+
+    def __console(self, level, message):
+        """构造日志收集器"""
+        # all_logger_handler = self.__init_logger_handler(self.__all_log_path)  # 创建日志文件
+        # error_logger_handler = self.__init_logger_handler(self.__error_log_path)
+        console_handle = self.__init_console_handle()
+
+        # self.__set_log_formatter(all_logger_handler)  # 设置日志格式
+        # self.__set_log_formatter(error_logger_handler)
+        self.__set_color_formatter(console_handle, log_colors_config)
+
+        # self.__set_log_handler(all_logger_handler)  # 设置handler级别并添加到logger收集器
+        # self.__set_log_handler(error_logger_handler, level=logging.ERROR)
+        self.__set_color_handle(console_handle)
+
+        if level == 'info':
+            self.__logger.info(message)
+        elif level == 'debug':
+            self.__logger.debug(message)
+        elif level == 'warning':
+            self.__logger.warning(message)
+        elif level == 'error':
+            self.__logger.error(message)
+        elif level == 'critical':
+            self.__logger.critical(message)
+
+        # self.__logger.removeHandler(all_logger_handler)  # 避免日志输出重复问题
+        # self.__logger.removeHandler(error_logger_handler)
+        self.__logger.removeHandler(console_handle)
+
+        # self.__close_handler(all_logger_handler)  # 关闭handler
+        # self.__close_handler(error_logger_handler)
 
     def debug(self, message):
-        sys.stdout.write(self._format('DEBUG',message=message))
+        self.__console('debug', message)
+
+    def info(self, message):
+        self.__console('info', message)
 
     def warning(self, message):
-        sys.stdout.write(self._format('WARNING',message=message))
+        self.__console('warning', message)
 
     def error(self, message):
-        sys.stderr.write(self._format('ERROR',message=message))
-        sys.exit(1)
+        self.__console('error', message)
 
-    def fatal(self, message, exit_code=1):
-        sys.stderr.write(self._format('fatal', message=message))
-        sys.exit(exit_code)
+    def critical(self, message):
+        self.__console('critical', message)
 
-std = Log(os.path.basename(__file__))
+    def logAsDecorator(self, func):
+        @functools.wraps(func)
+        def wrapper(*args, **kw):
+            try:
+                start_time = time.time()
+                aa = func(*args, **kw)
+                end_time = time.time()
+                self.info(
+                    f"""
+================================================
+函数运行详情如下：
+函数名称：{func.__name__}
+函数入参：{args},{kw}
+函数返回：{aa}
+当前时间：{get_now_time_str()}
+运行时间: {formatTime(end_time - start_time)}
+=================================================""")
+            except Exception as e:
+                aa = 'err:' + str(e)
+                if aa is None:
+                    dretrun = ''
+                elif isinstance(aa, str):
+                    dretrun = aa
+                elif isinstance(aa, tuple):
+                    dretrun = list(aa)
+                else:
+                    dretrun = str(aa)
+                self.error(dretrun)
+            return aa
+        return wrapper
+
+std = Log()
 
 class myconf(configparser.ConfigParser):
     def __init__(self,defaults=None):

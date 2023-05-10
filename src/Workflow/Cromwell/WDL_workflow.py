@@ -1,9 +1,9 @@
 import json
-from jinja2 import PackageLoader, Environment, FileSystemLoader
 
-from Workflow.version import tool_bin
-from lib.public_method import *
 from Workflow.BaseParserJob.baseworkflow import Parser_Job
+from Workflow.version import tool_bin
+from jinja2 import Environment, FileSystemLoader
+from lib.public_method import *
 
 bindir = os.path.realpath(os.path.dirname(__file__))
 

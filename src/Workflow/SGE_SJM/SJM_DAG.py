@@ -1,6 +1,6 @@
-from lib.public_method import *
 from Workflow.BaseParserJob.baseworkflow import Parser_Job
-from Workflow.version import tool_bin as bin_tool
+from lib.public_method import *
+
 
 class Deliver_DAG_Job():
     def __init__(self,job_file, parameter, outdir, pipe_bindir, sjm_method):
@@ -91,7 +91,10 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
         self.public_qsub(one_job.Image, one_job.Mount)
 
         job_content += '\njob_begin'
-        job_content += '\n\tname {0.Name}\n\tstatus {0.Status}\n\tsched_options -V -cwd -l vf={0.Memory},p={0.CPU} -q {0.Queue}\n\tcmd {1.Env} {0.Shell_dir}/{0.Module}-{0.Name}.sh\n'.format(one_job, self)
+        if one_job.Queue and one_job.Queue != 'Null':
+            job_content += '\n\tname {0.Name}\n\tstatus {0.Status}\n\tsched_options -V -cwd -l vf={0.Memory},p={0.CPU} -q {0.Queue}\n\tcmd {1.Env} {0.Shell_dir}/{0.Module}-{0.Name}.sh\n'.format(one_job, self)
+        else:
+            job_content += '\n\tname {0.Name}\n\tstatus {0.Status}\n\thost localhost\n\tcmd {1.Env} {0.Shell_dir}/{0.Module}-{0.Name}.sh\n'.format(one_job, self)
         job_content += 'job_end'
         for one_depend in self.pipelineGraph.getVertex(one_job).getConnections():
             order_content += 'order {1.Name} after {0.Name}\n'.format(one_job, one_depend.id)
@@ -122,7 +125,7 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
 
         self.sh_sjm_Analysis = os.path.join(self.outdir,'sjm_Analysis.sh')
         with open(self.sh_sjm_Analysis, 'w') as f_sjm:
-            f_sjm.write('cd {0.outdir}/log && export SGE_ROOT={0.sge_root} && {0.sjm} -i -l Analysis.job.status.log Analysis.job\n'.format(self))
+            f_sjm.write('cd {0.outdir}/log && export LD_LIBRARY_PATH={0.globalMSG.path.sjm}  && export SGE_ROOT={0.sge_root} && {0.sjm} -i -l Analysis.job.status.log Analysis.job\n'.format(self))
 
         environment = os.path.join(self.outdir, 'sh_Docker_environment.sh')
         if self.sjm_method != 'normal':

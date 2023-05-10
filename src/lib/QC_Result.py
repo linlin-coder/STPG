@@ -42,6 +42,22 @@ class QC_Method():
                     self.DefinedOutput(self.MarkSign[True])
                 else:
                     self.DefinedOutput(self.MarkSign[False])
+            elif 'row' in self.taget_content.Order and ('>' in self.taget_content.Order or '<' in self.taget_content.Order):
+                if not os.path.exists(self.taget_content.Path):
+                    self.DefinedOutput(self.MarkSign[False])
+                else:
+                    row = 0
+                    tag = True
+                    with open(self.taget_content.Path, 'r') as F_file:
+                        row = len(F_file.readlines())
+                    try:
+                        express_result = eval(self.taget_content.Order)
+                        if not express_result:
+                            tag = False
+                    except Exception as e:
+                            print('expression is error:',express_now)
+                            tag = False
+                    self.DefinedOutput(self.MarkSign[tag])
         elif self.taget_content.Type == 'table':
             table_markdown = self.table_markdown
             if not os.path.exists(self.taget_content.Path):

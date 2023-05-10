@@ -152,6 +152,12 @@ class JOB_attribute(BaseAttribute):
                 for line in getattr(self, key, []):
                     if not line or line == [None]:continue
                     format_line = ' '.join(self.format_string(line))
+                    if key == 'QC':
+                        try:
+                            format_line = format_line.format(**para, **keyword)
+                        except Exception as e:
+                            # std.warning(e)
+                            pass
                     format_line_list.append(format_line)
                 setattr(self, key, format_line_list)
             elif key in ['Output', ]:
@@ -433,16 +439,16 @@ class Parser_Job():
                                 if len(secondpart) == 0:continue
                                 for one_secondpart in sorted(secondpart):
                                     tmp_a_job = copy.deepcopy(a_job)
-                                    if self.connector == '_':
-                                        value[0]     	  = str(value[0]).replace("-", self.connector)
-                                        one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
-                                    elif self.connector == '-':
-                                        value[0]     	  = str(value[0]).replace("_", self.connector)
-                                        one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
+                                    # if self.connector == '_':
+                                    #     value[0]     	  = str(value[0]).replace("-", self.connector)
+                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
+                                    # elif self.connector == '-':
+                                    #     value[0]     	  = str(value[0]).replace("_", self.connector)
+                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
 
                                     tmp_a_job.Module = modules
                                     tmp_a_job.JName = a_job_name                            
-                                    tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(value[0]), str(one_secondpart[0])])
+                                    tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(self.replace_jobname(value[0])), str(self.replace_jobname(one_secondpart[0]))])
                                     tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job)
                                     tmp_a_job.format_Part(value, second_part=one_secondpart, outdir=self.outdir)
                                     try:
@@ -466,14 +472,14 @@ class Parser_Job():
                             else:
                                 tmp_a_job = copy.deepcopy(a_job)
 
-                                if self.connector == '_':
-                                    value[0] = str(value[0]).replace("-", self.connector)
-                                elif self.connector == '-':
-                                    value[0] = str(value[0]).replace("_", self.connector)
+                                # if self.connector == '_':
+                                #     value[0] = str(value[0]).replace("-", self.connector)
+                                # elif self.connector == '-':
+                                #     value[0] = str(value[0]).replace("_", self.connector)
                                     
                                 tmp_a_job.Module = modules
                                 tmp_a_job.JName = a_job_name                            
-                                tmp_a_job.Name += self.connector + str(value[0])
+                                tmp_a_job.Name += self.connector + str(self.replace_jobname(value[0]))
                                 tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job)
                                 tmp_a_job.format_Part(value, outdir=self.outdir)
                                 try:
@@ -601,8 +607,8 @@ class Parser_Job():
             if not taskvertext:return
             downsteam_tasklist = taskvertext.getConnections()
             for downsteam_task in downsteam_tasklist:
-                downsteam_task.Status = "waiting"
-                self.change_downstream_status([downsteam_task])
+                downsteam_task.id.Status = "waiting"
+            self.change_downstream_status([downsteam_task.id for downsteam_task in downsteam_tasklist ])
 
     def change_upstream_status(self,one_job, alreadychange=[]):
         for one_one_job in one_job:

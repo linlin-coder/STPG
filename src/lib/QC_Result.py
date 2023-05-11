@@ -24,16 +24,22 @@ class QC_Method():
 
     def BuildObject(self, OneTaget):
         parser_format_list = self.toconfig.sign.qc_sign.strip().split("|")
-        taget_content_list = OneTaget.strip().split("|")
+        taget_content_list: list = OneTaget.strip().split("|")
+        if len(taget_content_list) == 4:
+            taget_content_list.append('Failed')
         self.taget_content = Dict2Obj(dict(zip(parser_format_list, taget_content_list)))
 
         mark_list = self.toconfig.sign.qualify.strip().split("|")
         for markone in mark_list:
             markkey, markvalue = markone.split(":")
             try:
-                self.MarkSign[eval(markkey)] = markvalue
+                if markkey in ('True', 'False'):
+                    self.MarkSign[eval(markkey)] = markvalue
+                else:
+                    self.MarkSign[markkey] = markvalue
             except:
                 self.MarkSign[markkey] = markvalue
+        print(self.MarkSign)
 
     def QC_Content(self):
         if self.taget_content.Type == 'file':
@@ -41,10 +47,10 @@ class QC_Method():
                 if os.path.exists(self.taget_content.Path):
                     self.DefinedOutput(self.MarkSign[True])
                 else:
-                    self.DefinedOutput(self.MarkSign[False])
+                    self.DefinedOutput(self.MarkSign[self.taget_content.Level])
             elif 'row' in self.taget_content.Order and ('>' in self.taget_content.Order or '<' in self.taget_content.Order):
                 if not os.path.exists(self.taget_content.Path):
-                    self.DefinedOutput(self.MarkSign[False])
+                    self.DefinedOutput(self.MarkSign[self.taget_content.Level])
                 else:
                     row = 0
                     tag = True
@@ -53,15 +59,15 @@ class QC_Method():
                     try:
                         express_result = eval(self.taget_content.Order)
                         if not express_result:
-                            tag = False
+                            tag = self.taget_content.Level
                     except Exception as e:
-                            print('expression is error:',express_now)
-                            tag = False
+                            print('expression is error:',express_now,e)
+                            tag = self.taget_content.Level
                     self.DefinedOutput(self.MarkSign[tag])
         elif self.taget_content.Type == 'table':
             table_markdown = self.table_markdown
             if not os.path.exists(self.taget_content.Path):
-                self.DefinedOutput(self.MarkSign[False])
+                self.DefinedOutput(self.MarkSign[self.taget_content.Level])
                 return
             OrderDict = self.TableRule()
             TableJudged = []
@@ -80,17 +86,17 @@ class QC_Method():
                             try:
                                 express_result = eval(express_now)
                                 if not express_result:
-                                    tag = False
+                                    tag = self.taget_content.Level
                             except Exception as e:
-                                    print('expression is error:',express_now)
-                                    tag = False
+                                    print('expression is error:',express_now,e)
+                                    tag = self.taget_content.Level
                     TableJudged.append(line.strip().split('\t')+[self.MarkSign[tag]])
                 table_markdown.value_matrix = TableJudged
             self.DefinedOutput('\n\n'+table_markdown.dumps().replace("table", 'table border="1" '))
 
         elif self.taget_content.Type == 'list':
             if glob.glob(self.taget_content.Path) == []:
-                self.DefinedOutput(self.MarkSign[False])
+                self.DefinedOutput(self.MarkSign[self.taget_content.Level])
             else:
                 self.DefinedOutput(self.MarkSign[True])
         elif self.taget_content.Type == 'xlsx':

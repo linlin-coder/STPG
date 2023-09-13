@@ -407,6 +407,7 @@ class Parser_Job():
             else:
                 new_cmd_list.append(cmd)
         new_cmd_str += ' {sep}'.format(sep=self.separate).join(new_cmd_list)
+        new_cmd_str = new_cmd_str.replace(self.separate, ' \n')
         return new_cmd_str
 
     def replace_jobname(self, a_job_name):
@@ -573,7 +574,7 @@ class Parser_Job():
             unoverloaded_cmd = " ".join(mm)
             unoverloaded_cmd_list.append(unoverloaded_cmd)
         # unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
-        unoverloaded_cmd_str = ' \n'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
+        unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
         return unoverloaded_cmd_str
 
     def write_Command_to_file(self):

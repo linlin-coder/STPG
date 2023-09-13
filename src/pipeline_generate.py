@@ -68,6 +68,7 @@ def main():
     makedir(args.outdir)
     outdir = obtain_file_realpath(args.outdir)
     pipe_bindir = obtain_file_realpath(args.bindir)
+    args.config = [ obtain_file_realpath(config) for config in args.config ]
 
     ## tool config read
     if len(args.template) == 1:

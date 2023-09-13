@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import configparser
 import datetime
+import traceback
 import os
 import random
 import re,time
@@ -199,6 +200,7 @@ class Log:
 运行时间: {formatTime(end_time - start_time)}
 =================================================""")
             except Exception as e:
+                exception_info = traceback.format_exc()
                 aa = 'err:' + str(e)
                 if aa is None:
                     dretrun = ''
@@ -208,7 +210,8 @@ class Log:
                     dretrun = list(aa)
                 else:
                     dretrun = str(aa)
-                self.error(dretrun)
+                #self.error(dretrun)
+                self.error(f"Exception occurred: {dretrun}\n{exception_info}")
             return aa
         return wrapper
 

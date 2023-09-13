@@ -56,7 +56,9 @@ class BaseAttribute:
         self.Command: List[str] = []
         self.QC: List[str] = []
         self.Output: object = object
-        self.Input: List[str] = []
+        self.Input: object = Output()
+        self.Abstract: bool = False
+        self.Inherit: str = ""
         self.Env: str = ''
         self.Mount: List[str] = []
         self.Image: str = ''
@@ -80,7 +82,7 @@ class JOB_attribute(BaseAttribute):
         self.key_list = ['Name', 'Env', 'Image', 'Command',
                 'Description', 'Part', 'SecondPart', 'QC', 'Mount',
                 'Depend', 'Queue', "Status", "Shell_dir",
-                'CPU', 'Memory','Output']
+                'CPU', 'Memory','Output', 'Input', 'Inherit', 'Abstract']
         super(JOB_attribute, self).__init__()
 
     def addAtribute(self, key, value):
@@ -92,9 +94,10 @@ class JOB_attribute(BaseAttribute):
                     self.__dict__[key] = value
             elif key in ('Depend','Env','Mount'):
                 self.__dict__[key].extend(value)
-            elif key == "Output" and value:
+            elif key in ("Output", 'Input') and value:
                 if not value: value = {}
-                self.Output = Dict2Obj(value)
+                # self.Output = Dict2Obj(value)
+                self.__dict__[key] = Dict2Obj(value)
             else:
                 if isinstance(value, str):
                     self.__dict__[key] = value.strip()
@@ -103,6 +106,9 @@ class JOB_attribute(BaseAttribute):
             return True
         else:
             return False
+    
+    def updateAtribute(self, key, value):
+        self.addAtribute(key, value)
 
     def format_command(self,sep, global_sign:str = 'finished'):
         # output = ''
@@ -160,7 +166,7 @@ class JOB_attribute(BaseAttribute):
                             pass
                     format_line_list.append(format_line)
                 setattr(self, key, format_line_list)
-            elif key in ['Output', ]:
+            elif key in ['Output', 'Input']:
                 if para == {} or keyword == {}: continue
                 value = getattr(self, key, None)
                 members = [attr for attr in dir(value) if not callable(getattr(value, attr)) and not attr.startswith("__")]
@@ -171,7 +177,7 @@ class JOB_attribute(BaseAttribute):
                 value = getattr(self, key, None)
                 if value:
                     format_value = ' '.join(self.format_string(value))
-                    if key in ['Shell_dir'] :
+                    if key in ['Shell_dir', 'Image'] :
                         if init:continue 
                         setattr(self, key, format_value.format(**para, **keyword))
                     else:
@@ -187,7 +193,7 @@ class JOB_attribute(BaseAttribute):
                     cmd = eval(eval_cmd)
                     format_line_list.append(cmd)
                 setattr(self, key, format_line_list)
-            elif key in ['Output']:
+            elif key in ['Output', 'Input']:
                 value = getattr(self, key, None)
                 members = [attr for attr in dir(value) if not callable(getattr(value, attr)) and not attr.startswith("__")]
                 for member in members:
@@ -252,6 +258,7 @@ class Parser_Job():
         pipeline_dict = read_yaml(self.job_file)
         self.globalMSG = Yaml2Object(self.job_file).solution(pipeline_dict["resource"])
         default = pipeline_dict["default"]
+        self.abstract_jobs = {}
         self.default = Dict2Obj(default)
         error_keys_list = []
         pipeline = pipeline_dict["pipeline"]
@@ -261,12 +268,25 @@ class Parser_Job():
             for job in pipeline[module]:
                 for i in default:
                     pipeline[module][job].setdefault(i, default[i])
-                module_one_job = JOB_attribute()
+                module_one_job: JOB_attribute = JOB_attribute()
                 for key, value in pipeline[module][job].items():
                     back_add_status = module_one_job.addAtribute(key, value)
                     if not back_add_status:error_keys_list.append(key)
                 module_one_job.format_para(self.para, init=True)
                 if getattr(module_one_job,'Name','') == "":module_one_job.Name = self.replace_jobname(job)
+                if module_one_job.Abstract:
+                    if module_one_job.Inherit != '' or not module_one_job: 
+                        std.error(f'{module_one_job.Name} does not allow both abstract modules and inheritance from other modules')
+                    self.abstract_jobs[module_one_job.Name] = pipeline[module][job]
+                    continue
+                elif module_one_job.Inherit != '':
+                    if module_one_job.Inherit not in self.abstract_jobs:                        
+                        std.error(f"The abstract class:{module_one_job.Inherit} that this instance job:{module_one_job.Name} depends on does not exist in the flowchart, please check it!!! ")
+                    else:
+                        new_attribute: dict = copy.deepcopy(self.abstract_jobs[module_one_job.Inherit])
+                        input_para_object = new_attribute.pop("Input")
+                        [ module_one_job.updateAtribute(key ,value) for key, value in new_attribute.items() ]
+                        [ std.error(f'input parameter:{key} not define in instance job') for key in input_para_object.keys() if not hasattr(module_one_job.Input, key) ]
                 self.pipeline_jobs[self.replace_jobname(module)][self.replace_jobname(job)] = module_one_job
         modules = list(self.pipeline_jobs.keys())
         self.modules_list = modules
@@ -373,7 +393,7 @@ class Parser_Job():
 
     # @std.logAsDecorator
     def resolution_makefile_unfold(self, cmd_str):
-        new_cmd_str, new_cmd_list = '', ['set -e', 'set -o']
+        new_cmd_str, new_cmd_list = '', ['set -e', 'set -v', 'set -o']
         cmd_list = cmd_str.split(' {sep}'.format(sep=self.separate))
         for cmd in cmd_list:
             if pat5.search(cmd) or pat7.search(cmd.split(" ")[0]):
@@ -439,12 +459,6 @@ class Parser_Job():
                                 if len(secondpart) == 0:continue
                                 for one_secondpart in sorted(secondpart):
                                     tmp_a_job = copy.deepcopy(a_job)
-                                    # if self.connector == '_':
-                                    #     value[0]     	  = str(value[0]).replace("-", self.connector)
-                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("-", self.connector)
-                                    # elif self.connector == '-':
-                                    #     value[0]     	  = str(value[0]).replace("_", self.connector)
-                                    #     one_secondpart[0] = str(one_secondpart[0]).replace("_", self.connector)
 
                                     tmp_a_job.Module = modules
                                     tmp_a_job.JName = a_job_name                            
@@ -471,11 +485,6 @@ class Parser_Job():
                                     self.jobs_dict[tmp_a_job.Name] = tmp_a_job
                             else:
                                 tmp_a_job = copy.deepcopy(a_job)
-
-                                # if self.connector == '_':
-                                #     value[0] = str(value[0]).replace("-", self.connector)
-                                # elif self.connector == '-':
-                                #     value[0] = str(value[0]).replace("_", self.connector)
                                     
                                 tmp_a_job.Module = modules
                                 tmp_a_job.JName = a_job_name                            
@@ -526,7 +535,7 @@ class Parser_Job():
                             j_tmp = eval("j_tmp.format({one_loading_obj}=self.jobs_dict[input_task.Name])".format(
                                 one_loading_obj=input_task.Name.replace('-',"_")))
                             j_multiple_list.append(j_tmp.strip().split("=")[-1])
-                        a_job.Input.extend(j_multiple_list)
+                        a_job.Input.MultiInput1 = j_multiple_list
                         if len(j.strip().split("=")) == 2:
                             j_multiple_str += ",".join(j_multiple_list)
                         elif len(j.strip().split("=")) == 1:
@@ -534,7 +543,7 @@ class Parser_Job():
                         j = j_multiple_str
                     else:
                         one_loading_obj = self.replace_jobname(one_loading_obj)
-                        if a_job.Part != [] and len(j.strip().split("=")) >= 2:
+                        if a_job.Part != [] and one_loading_obj not in self.jobs_dict:#len(j.strip().split("=")) >= 2:
                             j_multiple_str = j.strip().split("=")[0] + "="
                             j_multiple_list = []
                             for itemname, one_secondvalues in self.project_config.items():
@@ -548,19 +557,23 @@ class Parser_Job():
                                             one_loading_obj=defindedOneJob.replace('-',"_"))
                                             )
                                         j_multiple_list.append(j_tmp.strip().split("=")[-1])
-                            a_job.Input.extend(j_multiple_list)
-                            j += ",".join(j_multiple_list)
+                            a_job.Input.MultiInput2 = j_multiple_list
+                            if '=' in j:
+                                j += ",".join(j_multiple_list)
+                            else:
+                                j = ",".join(j_multiple_list)
                         else:
                             try:
                                 j = eval("j.format({one_loading_obj_new}=self.jobs_dict[one_loading_obj])".format(
                                     one_loading_obj_new=one_loading_obj.replace('-',"_")))
-                                a_job.Input.append(j)
+                                a_job.Input.SingleInput1 = j
                             except KeyError as e:
                                 std.error(f"{one_loading_obj}:{e} not in pipeline graph,this command line is:{j}:{one_unoverloading_cmd}")
                 mm.append(j)
             unoverloaded_cmd = " ".join(mm)
             unoverloaded_cmd_list.append(unoverloaded_cmd)
-        unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
+        # unoverloaded_cmd_str = ' {sep}'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
+        unoverloaded_cmd_str = ' \n'.format(sep=self.separate).join(unoverloaded_cmd_list)#.replace('\\ &&\\','\\')
         return unoverloaded_cmd_str
 
     def write_Command_to_file(self):

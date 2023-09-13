@@ -18,7 +18,6 @@ resource:
     path:
        BIN: ""
        SGERoot: "/opt/gridengine"
-    #    WDLBeckendConf: /data/linlinData/Workflow/STPG/src/Workflow/Cromwell/template/sge_singularity.beckend.conf
        WDLBeckendConf: /data/linlinData/Workflow/STPG/src/Workflow/Cromwell/template/local_docker.beckend.conf
 
 
@@ -87,3 +86,28 @@ pipeline:
                 - "qc_repeat"
                 - "merge_data"
             Command: "{resource.software.make} -f {BIN}/Modules/QC.mk  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} scriptdir={OUTDIR} qc_summary File2=<qc.Output.QCP> File3=<merge_data.Output.A1>"
+        
+        abstract_job:
+            Abstract: True
+            Input:
+                parameterA: null
+                parameterB: null
+            Part:
+                - sample
+                - sample2
+            Command:
+                - "{resource.software.make} -f {BIN}/Modules/QC.mk sample_id={Part[0]}  outdir={OUTDIR} MainModule={MainModule} ChildModule={ChildModule} qc  File1=<merge_data_{Part[0]}.Output.A1>"
+                - "echo {BIN} {job.JName} {job.CPU} {job.Memory}"
+                - echo {job.Input.parameterA} {job.Input.parameterB}
+            Output:
+                QCP: ""
+        
+        instance_job:
+            Inherit: abstract_job
+            Input:
+                parameterA: ""
+                parameterB: ""
+             Output:
+                QCP: ""
+        
+

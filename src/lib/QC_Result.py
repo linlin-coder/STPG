@@ -28,6 +28,8 @@ class QC_Method():
         if len(taget_content_list) == 4:
             taget_content_list.append('Failed')
         self.taget_content = Dict2Obj(dict(zip(parser_format_list, taget_content_list)))
+        if not hasattr(self.taget_content, 'Level'):
+            self.taget_content.Level = False
 
         mark_list = self.toconfig.sign.qualify.strip().split("|")
         for markone in mark_list:
@@ -39,7 +41,6 @@ class QC_Method():
                     self.MarkSign[markkey] = markvalue
             except:
                 self.MarkSign[markkey] = markvalue
-        print(self.MarkSign)
 
     def QC_Content(self):
         if self.taget_content.Type == 'file':

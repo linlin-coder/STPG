@@ -87,6 +87,7 @@ class SJM_Job(Parser_Job,Deliver_DAG_Job):
             fout.write(job_content + "\n" + order_content)
 
     def define_sjm_one_job(self, one_job, job_content = '', order_content = ''):
+        # if isinstance(one_job, str):return job_content, order_content
         self.mount_list = []
         self.public_qsub(one_job.Image, one_job.Mount)
 

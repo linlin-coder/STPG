@@ -440,8 +440,10 @@ class multidict(dict):
         value = self[key] = type(self)()
         return value
 
-def random_strings(StrNum):
-    stringrandom = ''.join(random.sample(string.ascii_letters + string.digits, StrNum))
+def random_strings(StrNum: int) -> str:
+    start_stringrandom = random.sample(string.ascii_letters, 1)
+    end_stringrandom = random.sample(string.ascii_letters + string.digits, StrNum-1)
+    stringrandom = ''.join(start_stringrandom + end_stringrandom)
     return stringrandom
 
 def get_user_name():

@@ -7,7 +7,7 @@ import os
 import sys
 
 bin_tool = os.path.realpath(os.path.dirname(__file__))
-sys.path.append(os.path.join(bin_tool,'lib'))
+sys.path.extend([bin_tool, os.path.join(bin_tool,'lib')])
 from lib.QC_Result import *
 from lib.multi_yaml_merge import merge_multi_yaml
 

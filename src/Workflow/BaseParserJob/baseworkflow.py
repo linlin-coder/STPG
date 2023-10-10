@@ -48,6 +48,7 @@ class GlobalPara:
 
 class BaseAttribute:
     def __init__(self) -> None:
+        self._Code: str = random_strings(12)         # sample(-secondsample) ID
         self.Name: str = ''
         self.Queue: str = ''
         self.CPU: int = 1
@@ -109,6 +110,14 @@ class JOB_attribute(BaseAttribute):
     
     def updateAtribute(self, key, value):
         self.addAtribute(key, value)
+
+    @property
+    def Code(self):
+        return self._Code
+
+    @Code.setter
+    def Code(self, value):
+        self._Code = value
 
     def format_command(self,sep, global_sign:str = 'finished'):
         # output = ''
@@ -227,7 +236,8 @@ class Parser_Job():
         self.cost = 1 # define weight of graph vertice
         self.job_file = job_file
         self.jobs_dict = {}
-        self.separate = "&&\\\n"
+        self.jobs_name_map_code = {}
+        self.separate = "+++---+++"
         self.connector = '_'
         self.para = parameter
         self.job_list = ""  # this define job list file,and write on one raw
@@ -377,16 +387,19 @@ class Parser_Job():
                         self.pipelineGraph.addEdge(f=one_depend_job, t=a_job, cost=self.cost)
             else:
                 tag = False
-                if one_thisjob_depend in self.jobs_dict:
-                    self.pipelineGraph.addEdge(f=self.jobs_dict[one_thisjob_depend], t=a_job, cost=self.cost)
+                if one_thisjob_depend in self.jobs_name_map_code:
+                    self.pipelineGraph.addEdge(f=self.jobs_dict[self.jobs_name_map_code[one_thisjob_depend]], t=a_job, cost=self.cost)
                     tag = True
                 else:
-                    for _, section_config in self.project_config.items():
+                    for itemname, section_config in self.project_config.items():
+                        if itemname in ('DB', 'Para') or itemname in a_job.Part: continue
                         for one_value in section_config:
-                            real_depend_jobname = one_thisjob_depend + self.connector + str(one_value[0])
-                            if real_depend_jobname in self.jobs_dict:
-                                self.pipelineGraph.addEdge(f=self.jobs_dict[real_depend_jobname], t=a_job, cost=self.cost)
+                            real_depend_jobname = one_thisjob_depend + self.connector + str(self.replace_jobname(one_value[0]))
+                            if real_depend_jobname in self.jobs_name_map_code:
+                                self.pipelineGraph.addEdge(f=self.jobs_dict[self.jobs_name_map_code[real_depend_jobname]], t=a_job, cost=self.cost)
                                 tag = True
+                            # else:
+                            #     std.warning("can not find depend job:{0}".format(real_depend_jobname))
                 if not tag:
                     std.warning("remove task:{0} depend module/task:{1}".format(a_job.Name,one_thisjob_depend))
                     a_job.Depend.remove(one_thisjob_depend.replace('-', '_'))
@@ -445,7 +458,8 @@ class Parser_Job():
 
                     a_job.Command = [cmd]
                     self.pipeline_jobs[modules][a_job_name] = [a_job]
-                    self.jobs_dict[a_job.Name] = a_job
+                    self.jobs_dict[a_job.Code] = a_job
+                    self.jobs_name_map_code[a_job.Name] = a_job.Code
                 else:
                     run_sample = []
                     for i in a_job.Part:
@@ -462,7 +476,8 @@ class Parser_Job():
                                     tmp_a_job = copy.deepcopy(a_job)
 
                                     tmp_a_job.Module = modules
-                                    tmp_a_job.JName = a_job_name                            
+                                    tmp_a_job.JName = a_job_name
+                                    tmp_a_job.Code = random_strings(12)
                                     tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(self.replace_jobname(value[0])), str(self.replace_jobname(one_secondpart[0]))])
                                     tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job)
                                     tmp_a_job.format_Part(value, second_part=one_secondpart, outdir=self.outdir)
@@ -483,13 +498,15 @@ class Parser_Job():
                                     if isinstance(self.pipeline_jobs[modules][a_job_name], JOB_attribute):
                                         self.pipeline_jobs[modules][a_job_name] = []
                                     self.pipeline_jobs[modules][a_job_name].append(tmp_a_job)
-                                    self.jobs_dict[tmp_a_job.Name] = tmp_a_job
+                                    self.jobs_dict[tmp_a_job.Code] = tmp_a_job
+                                    self.jobs_name_map_code[tmp_a_job.Name] = tmp_a_job.Code
                             else:
                                 tmp_a_job = copy.deepcopy(a_job)
                                     
                                 tmp_a_job.Module = modules
                                 tmp_a_job.JName = a_job_name                            
                                 tmp_a_job.Name += self.connector + str(self.replace_jobname(value[0]))
+                                tmp_a_job.Code = random_strings(12)
                                 tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job)
                                 tmp_a_job.format_Part(value, outdir=self.outdir)
                                 try:
@@ -508,12 +525,13 @@ class Parser_Job():
                                     self.pipeline_jobs[modules][a_job_name] = []
 
                                 self.pipeline_jobs[modules][a_job_name].append(tmp_a_job)
-                                self.jobs_dict[tmp_a_job.Name] = tmp_a_job
+                                self.jobs_dict[tmp_a_job.Code] = tmp_a_job
+                                self.jobs_name_map_code[tmp_a_job.Name] = tmp_a_job.Code
                     else:
                         std.warning('{} is empty\n'.format(a_job.Part))#, exit_code=1)
                         self.pipeline_jobs[modules].pop(a_job_name)
 
-    def jobobject_overloading2(self, unoverloading_cmd, a_job):
+    def jobobject_overloading2(self, unoverloading_cmd, a_job: JOB_attribute):
         unoverloading_cmd = str(unoverloading_cmd)
         unoverloaded_cmd_list, unoverloaded_cmd_str = [], ''
         unoverloading_cmd_list = unoverloading_cmd.split(' {sep}'.format(sep=self.separate))
@@ -521,8 +539,8 @@ class Parser_Job():
             mm = []
             for _, j in enumerate(one_unoverloading_cmd.split(sep=" ")):
                 if pat6.search(j):
-                    one_loading_obj = pat6.search(j).group(1).split(".")[0]
-                    j = pat6.sub(r"{\1}", j)
+                    one_loading_obj = pat6.search(j).group(1).split("Output")[0].strip('.')
+                    j = self.replace_jobname(pat6.sub(r"{\1}", j))
 
                     input_task_dir = get_dict_target.getpath(self.pipeline_jobs, self.replace_jobname(one_loading_obj))
                     if input_task_dir:
@@ -532,9 +550,9 @@ class Parser_Job():
                         j_multiple_str = j.strip().split("=")[0] + "="
                         j_multiple_list = []
                         for input_task in all_input_tasks:
-                            j_tmp = j.replace(one_loading_obj, input_task.Name).replace('-',"_")
-                            j_tmp = eval("j_tmp.format({one_loading_obj}=self.jobs_dict[input_task.Name])".format(
-                                one_loading_obj=input_task.Name.replace('-',"_")))
+                            j_tmp = j.replace(one_loading_obj, input_task.Code)
+                            j_tmp = eval("j_tmp.format({TaskCode}=self.jobs_dict[input_task.Code])".format(
+                                TaskCode=input_task.Code))
                             j_multiple_list.append(j_tmp.strip().split("=")[-1])
                         a_job.Input.MultiInput1 = j_multiple_list
                         if len(j.strip().split("=")) == 2:
@@ -544,7 +562,7 @@ class Parser_Job():
                         j = j_multiple_str
                     else:
                         one_loading_obj = self.replace_jobname(one_loading_obj)
-                        if a_job.Part != [] and one_loading_obj not in self.jobs_dict:#len(j.strip().split("=")) >= 2:
+                        if a_job.Part != [] and one_loading_obj not in self.jobs_name_map_code:#len(j.strip().split("=")) >= 2:
                             j_multiple_str = j.strip().split("=")[0] + "="
                             j_multiple_list = []
                             for itemname, one_secondvalues in self.project_config.items():
@@ -552,11 +570,11 @@ class Parser_Job():
                                 for secondvalue in one_secondvalues:
                                     secondvalueFirstElement = self.replace_jobname(secondvalue[0])
                                     defindedOneJob = one_loading_obj + self.connector + secondvalueFirstElement
-                                    if defindedOneJob in self.jobs_dict:
-                                        j_tmp = j.replace(one_loading_obj.replace('-',"_"), defindedOneJob.replace('-',"_"))
-                                        j_tmp = eval("j_tmp.format({one_loading_obj}=self.jobs_dict[defindedOneJob])".format(
-                                            one_loading_obj=defindedOneJob.replace('-',"_"))
-                                            )
+                                    if defindedOneJob in self.jobs_name_map_code:
+                                        defindedOneJobCode = self.jobs_name_map_code.get(defindedOneJob)
+                                        j_tmp = j.replace(one_loading_obj.replace('-',"_"), defindedOneJobCode)
+                                        j_tmp = eval("j_tmp.format({TaskCode}=self.jobs_dict[defindedOneJobCode])".format(
+                                            TaskCode=defindedOneJobCode))
                                         j_multiple_list.append(j_tmp.strip().split("=")[-1])
                             a_job.Input.MultiInput2 = j_multiple_list
                             if '=' in j:
@@ -565,11 +583,13 @@ class Parser_Job():
                                 j = ",".join(j_multiple_list)
                         else:
                             try:
-                                j = eval("j.format({one_loading_obj_new}=self.jobs_dict[one_loading_obj])".format(
-                                    one_loading_obj_new=one_loading_obj.replace('-',"_")))
+                                defindedOneJobCode = self.jobs_name_map_code.get(one_loading_obj, 'uncertain')
+                                j = j.replace(one_loading_obj.replace('-', "_"), defindedOneJobCode)
+                                j = eval("j.format({TaskCode}=self.jobs_dict[defindedOneJobCode])".format(
+                                    TaskCode=defindedOneJobCode))
                                 a_job.Input.SingleInput1 = j
                             except KeyError as e:
-                                std.error(f"{one_loading_obj}:{e} not in pipeline graph,this command line is:{j}:{one_unoverloading_cmd}")
+                                std.warning(f"{one_loading_obj}:{e} not in pipeline graph,this command line is:{j}:{one_unoverloading_cmd}")
                 mm.append(j)
             unoverloaded_cmd = " ".join(mm)
             unoverloaded_cmd_list.append(unoverloaded_cmd)

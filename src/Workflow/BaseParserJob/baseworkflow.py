@@ -550,7 +550,7 @@ class Parser_Job():
                         j_multiple_str = j.strip().split("=")[0] + "="
                         j_multiple_list = []
                         for input_task in all_input_tasks:
-                            j_tmp = j.replace(one_loading_obj, input_task.Code)
+                            j_tmp = j.replace(f"{one_loading_obj}.Output", f"{input_task.Code}.Output")
                             j_tmp = eval("j_tmp.format({TaskCode}=self.jobs_dict[input_task.Code])".format(
                                 TaskCode=input_task.Code))
                             j_multiple_list.append(j_tmp.strip().split("=")[-1])

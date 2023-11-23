@@ -443,7 +443,7 @@ class Parser_Job():
                 if a_job.Part == []:
                     a_job.Module = modules
                     a_job.JName = a_job_name
-                    a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, job=a_job)
+                    a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, job=a_job, resource=self.globalMSG)
                     a_job.format_Part('', outdir=self.outdir)
                     try:
                         evaled_cmd = a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(
@@ -479,7 +479,7 @@ class Parser_Job():
                                     tmp_a_job.JName = a_job_name
                                     tmp_a_job.Code = random_strings(12)
                                     tmp_a_job.Name = self.connector.join([tmp_a_job.Name, str(self.replace_jobname(value[0])), str(self.replace_jobname(one_secondpart[0]))])
-                                    tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job)
+                                    tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, SecondPart=one_secondpart, job=tmp_a_job, resource=self.globalMSG)
                                     tmp_a_job.format_Part(value, second_part=one_secondpart, outdir=self.outdir)
                                     try:
                                         evaled_cmd = tmp_a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(para=para , Part=value , db=db, SecondPart=one_secondpart,
@@ -507,7 +507,7 @@ class Parser_Job():
                                 tmp_a_job.JName = a_job_name                            
                                 tmp_a_job.Name += self.connector + str(self.replace_jobname(value[0]))
                                 tmp_a_job.Code = random_strings(12)
-                                tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job)
+                                tmp_a_job.format_para(para=para, MainModule=modules, ChildModule=a_job_name, Part=value, job=tmp_a_job, resource=self.globalMSG)
                                 tmp_a_job.format_Part(value, outdir=self.outdir)
                                 try:
                                     evaled_cmd = tmp_a_job.format_command(sep=self.separate, global_sign=self.globalMSG.sign.finish_sign)[1].format(para=para , Part=value ,db=db,
